@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Life Planner — PatLabs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#0c0d0f;--s1:#141618;--s2:#1b1d21;--s3:#222528;--s4:#2a2d32;
+  --b:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.12);--b3:rgba(255,255,255,0.18);
+  --gold:#c9a84c;--gold2:#e0c06a;--text:#ede9e3;--t2:#8a8d98;--t3:#4e5159;
+  --green:#3db57e;--red:#e05252;--blue:#4a8fd4;--purple:#9b72d4;
+  --fd:'Playfair Display',Georgia,serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:0 24px 80px}
+
+/* Header */
+header{padding:24px 0 0;display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--b)}
+.brand{padding-bottom:16px;display:flex;align-items:baseline;gap:12px}
+.brand-name{font-family:var(--fd);font-size:20px;letter-spacing:.01em}
+.brand-tag{font-size:10px;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-weight:500;border:1px solid rgba(201,168,76,.3);padding:2px 8px;border-radius:20px}
+.tabs{display:flex}
+.tab{padding:13px 20px;font-size:13px;color:var(--t3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap;font-family:var(--fb)}
+.tab:hover{color:var(--t2)}.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:500}
+
+/* Sub-tabs */
+.stabs{display:flex;gap:4px;margin:20px 0 0;border-bottom:1px solid var(--b);padding-bottom:0}
+.stab{padding:8px 16px;font-size:12px;color:var(--t3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-family:var(--fb)}
+.stab:hover{color:var(--t2)}.stab.active{color:var(--gold2);border-bottom-color:var(--gold2);font-weight:500}
+
+/* Panels */
+.panel{display:none;padding-top:24px;animation:fadeUp .25s ease}
+.panel.active{display:block}
+.subpanel{display:none}.subpanel.active{display:block;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Cards */
+.card{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:20px}
+.card-title{font-family:var(--fd);font-size:14px;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--b);letter-spacing:.01em}
+.card-sub{font-size:11px;color:var(--t3);margin-top:2px;font-family:var(--fb)}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ga{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.flex{display:flex}.flex-col{flex-direction:column}.gap6{gap:6px}.gap10{gap:10px}.gap14{gap:14px}.gap20{gap:20px}
+.mb8{margin-bottom:8px}.mb14{margin-bottom:14px}.mb20{margin-bottom:20px}.mb28{margin-bottom:28px}.mt14{margin-top:14px}.mt20{margin-top:20px}
+.fb-row{display:flex;justify-content:space-between;align-items:center}
+.sh{margin-bottom:22px}.sh h1{font-family:var(--fd);font-size:24px;margin-bottom:4px;letter-spacing:.01em}.sh p{font-size:12px;color:var(--t3)}
+
+/* Inputs */
+.ig{display:flex;flex-direction:column;gap:3px;margin-bottom:9px}
+.ig label{font-size:9px;color:var(--t2);letter-spacing:.07em;text-transform:uppercase}
+.ir{display:flex;align-items:center;gap:5px}
+.ir input,.ir select{background:var(--s2);border:1px solid var(--b);color:var(--text);font-family:var(--fm);font-size:12px;padding:6px 9px;border-radius:6px;width:100%;outline:none;transition:border-color .15s}
+.ir input:focus,.ir select:focus{border-color:var(--gold)}
+.ir select option{background:var(--s2)}
+.unit{font-size:10px;color:var(--t3);white-space:nowrap;min-width:26px}
+.ig2{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+.ig3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 10px}
+
+/* Metrics */
+.metric{background:var(--s2);border-radius:8px;padding:12px 14px;border:1px solid var(--b)}
+.ml{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.mv{font-family:var(--fm);font-size:18px;font-weight:500}
+.mv.gold{color:var(--gold)}.mv.green{color:var(--green)}.mv.red{color:var(--red)}.mv.blue{color:var(--blue)}.mv.purple{color:var(--purple)}
+.ms{font-size:10px;color:var(--t3);margin-top:3px}
+
+/* Tables */
+.tw{overflow:auto;max-height:420px}
+.tw::-webkit-scrollbar{width:3px;height:3px}
+.tw::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 10px;color:var(--t3);font-weight:500;font-size:9px;text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid var(--b);position:sticky;top:0;background:var(--s1);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.022);font-family:var(--fm);color:var(--t2);white-space:nowrap}
+td.label{color:var(--text);font-family:var(--fb);font-size:13px}
+td.cat{color:var(--gold2);font-family:var(--fb);font-size:12px;font-style:italic}
+tr:hover td{background:rgba(255,255,255,.012)}
+tfoot td{color:var(--t2);border-top:1px solid var(--b);border-bottom:none;padding-top:9px}
+td input{background:var(--s2);border:1px solid transparent;color:var(--text);font-family:var(--fm);font-size:11px;padding:4px 6px;border-radius:4px;width:100%;outline:none;min-width:70px}
+td input:focus{border-color:var(--gold)}
+.coast-row td{color:var(--green)!important}
+.retired-row td{color:var(--purple)!important}
+.milestone-ok td:last-child,.milestone-ok td:nth-last-child(2){color:var(--green)!important}
+.milestone-pending td:last-child,.milestone-pending td:nth-last-child(2){color:var(--gold)!important}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.bg{background:rgba(61,181,126,.15);color:var(--green)}
+.br{background:rgba(224,82,82,.13);color:var(--red)}
+.bb{background:rgba(74,143,212,.15);color:var(--blue)}
+.bo{background:rgba(201,168,76,.15);color:var(--gold)}
+.bp{background:rgba(155,114,212,.15);color:var(--purple)}
+
+/* Toggle buttons */
+.tog{padding:3px 10px;border-radius:20px;font-size:9px;font-weight:700;cursor:pointer;border:1px solid var(--b);background:none;color:var(--t3);transition:all .15s;letter-spacing:.05em;text-transform:uppercase}
+.tog.on{background:rgba(61,181,126,.12);color:var(--green);border-color:rgba(61,181,126,.25)}
+.tog.off{background:rgba(224,82,82,.1);color:var(--red);border-color:rgba(224,82,82,.2)}
+.act-tog{padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--b);background:var(--s2);color:var(--t2);transition:all .15s;font-family:var(--fb)}
+.act-tog.on{background:rgba(61,181,126,.15);color:var(--green);border-color:rgba(61,181,126,.3)}
+
+/* Buttons */
+.btn{background:var(--gold);color:#0c0d0f;border:none;border-radius:7px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fb);letter-spacing:.04em;transition:opacity .15s}
+.btn:hover{opacity:.85}
+
+/* Progress */
+.pt{height:3px;background:var(--s3);border-radius:2px;overflow:hidden}
+.pf{height:100%;border-radius:2px;background:var(--gold);transition:width .3s}
+.pf.green{background:var(--green)}.pf.red{background:var(--red)}
+
+/* Charts */
+.cw{position:relative;width:100%}
+
+/* Sliders */
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:var(--s3);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--bg)}
+
+/* Scenario columns */
+.sc-col{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:18px}
+.sc-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--b)}
+.sc-letter{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:13px;font-weight:600;flex-shrink:0}
+.la{background:rgba(201,168,76,.18);color:var(--gold)}.lb{background:rgba(74,143,212,.18);color:var(--blue)}.lc{background:rgba(61,181,126,.18);color:var(--green)}
+
+/* Event blocks */
+.ev{background:var(--s2);border-radius:8px;padding:11px;margin-bottom:8px;border:1px solid var(--b)}
+.ev-name{font-size:11px;font-weight:500;color:var(--text);display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.ev-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.ev-ig{display:flex;flex-direction:column;gap:2px}
+.ev-ig label{font-size:9px;color:var(--t3);letter-spacing:.06em;text-transform:uppercase}
+.ev-ig input,.ev-ig select{background:var(--bg);border:1px solid var(--b);color:var(--text);font-family:var(--fm);font-size:11px;padding:4px 6px;border-radius:4px;width:100%;outline:none}
+.ev-ig input:focus,.ev-ig select:focus{border-color:var(--gold)}
+.ev-ig input:disabled,.ev-ig select:disabled{opacity:.3;pointer-events:none}
+
+/* Strategy cards */
+.strat{background:var(--s2);border:1px solid var(--b);border-radius:10px;padding:14px}
+.strat.best{border-color:rgba(201,168,76,.35)}
+.strat-title{font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+
+/* FICO */
+.fico-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fico-label{font-size:11px;color:var(--t2);min-width:160px}
+.fico-track{flex:1;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.fico-fill{height:100%;border-radius:3px;transition:width .4s}
+.fico-pct{font-size:10px;color:var(--t3);min-width:35px;text-align:right;font-family:var(--fm)}
+.score-arc{text-align:center;padding:20px 0}
+.score-num{font-family:var(--fm);font-size:48px;font-weight:500}
+.score-label{font-size:11px;color:var(--t3);margin-top:4px}
+
+/* Range guide */
+.range-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;margin-bottom:4px;font-size:12px}
+.range-row.current{background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.2)}
+.range-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.action-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--s2);border-radius:7px;margin-bottom:6px;gap:10px}
+.action-info{flex:1;min-width:0}
+.action-name{font-size:12px;color:var(--text);margin-bottom:2px}
+.action-note{font-size:10px;color:var(--t3)}
+.action-impact{font-family:var(--fm);font-size:12px;min-width:60px;text-align:right}
+
+/* Divider */
+hr{border:none;border-top:1px solid var(--b);margin:16px 0}
+
+/* Responsive */
+@media(max-width:1000px){.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.tabs{overflow-x:auto}.tab{font-size:12px;padding:10px 12px}.app{padding:0 14px 60px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">
+    <span class="brand-name">Life Planner</span>
+    <span class="brand-tag">PatLabs</span>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" onclick="switchMain(0)">🔮 Life Scenarios</button>
+    <button class="tab" onclick="switchMain(1)">🏖️ Coast FIRE</button>
+    <button class="tab" onclick="switchMain(2)">💳 Debt & Credit</button>
+  </nav>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PANEL 0 — LIFE SCENARIO PLANNER
+═══════════════════════════════════════════════════════════════ -->
+<div class="panel active" id="p0">
+  <div class="sh mt20"><h1>Life Scenario Analysis & Forecasting</h1><p>Model 3 versions of your future. Toggle events ON/OFF, adjust inputs, compare net worth outcomes side-by-side.</p></div>
+
+  <!-- Sub-tabs -->
+  <div class="stabs">
+    <button class="stab active" onclick="switchSub('ls',0)">📋 Inputs & Scenarios</button>
+    <button class="stab" onclick="switchSub('ls',1)">💰 Cost Breakdown</button>
+    <button class="stab" onclick="switchSub('ls',2)">📊 Dashboard</button>
+    <button class="stab" onclick="switchSub('ls',3)">📅 Year-by-Year (Scenario A)</button>
+    <button class="stab" onclick="switchSub('ls',4)">🏆 Milestones</button>
+  </div>
+
+  <!-- Sub 0: Inputs -->
+  <div class="subpanel active" id="ls-sub0">
+    <div class="g2 gap14 mb14 mt14" style="grid-template-columns:350px 1fr">
+
+      <div class="card">
+        <div class="card-title">Personal Baseline</div>
+        <div class="ig2">
+          <div class="ig"><label>Current Age</label><div class="ir"><input type="number" id="ls-age" value="32"><span class="unit">yrs</span></div></div>
+          <div class="ig"><label>Gross Income $/yr</label><div class="ir"><input type="number" id="ls-inc" value="150000"><span class="unit">$</span></div></div>
+          <div class="ig"><label>Annual Raise %</label><div class="ir"><input type="number" id="ls-raise" value="2"><span class="unit">%</span></div></div>
+          <div class="ig"><label>Effective Tax Rate %</label><div class="ir"><input type="number" id="ls-tax" value="21"><span class="unit">%</span></div></div>
+          <div class="ig"><label>Total Assets $</label><div class="ir"><input type="number" id="ls-assets" value="85000"><span class="unit">$</span></div></div>
+          <div class="ig"><label>Invested Assets $</label><div class="ir"><input type="number" id="ls-inv" value="65000"><span class="unit">$</span></div></div>
+          <div class="ig"><label>Total Debt $</label><div class="ir"><input type="number" id="ls-debt" value="105687"><span class="unit">$</span></div></div>
+          <div class="ig"><label>Monthly Debt Payment</label><div class="ir"><input type="number" id="ls-debtpmt" value="800"><span class="unit">$/mo</span></div></div>
+          <div class="ig"><label>Monthly Living Expenses</label><div class="ir"><input type="number" id="ls-exp" value="3300"><span class="unit">$/mo</span></div></div>
+          <div class="ig"><label>Invest. Return %</label><div class="ir"><input type="number" id="ls-ret" value="9.5"><span class="unit">%</span></div></div>
+          <div class="ig"><label>Inflation Rate %</label><div class="ir"><input type="number" id="ls-inf" value="3"><span class="unit">%</span></div></div>
+          <div class="ig"><label>Safe Withdrawal Rate %</label><div class="ir"><input type="number" id="ls-swr" value="5"><span class="unit">%</span></div></div>
+          <div class="ig"><label>Monthly SS Benefit $</label><div class="ir"><input type="number" id="ls-ss" value="2700"><span class="unit">$/mo</span></div></div>
+          <div class="ig"><label>SS Claiming Age</label><div class="ir"><input type="number" id="ls-ssAge" value="67"><span class="unit">yrs</span></div></div>
+          <div class="ig"><label>Emergency Fund Target</label><div class="ir"><input type="number" id="ls-efTarget" value="3"><span class="unit">mo</span></div></div>
+          <div class="ig"><label>Emergency Fund Balance</label><div class="ir"><input type="number" id="ls-efBal" value="2000"><span class="unit">$</span></div></div>
+        </div>
+        <div class="mt14"><button class="btn" onclick="computeAll()">Recalculate All →</button></div>
+      </div>
+
+      <div class="flex flex-col gap14">
+        <div class="ga gap10">
+          <div class="metric"><div class="ml">Scenario A — Portfolio at Retirement</div><div class="mv gold" id="ls-A-pf">—</div><div class="ms" id="ls-A-mo">—</div></div>
+          <div class="metric"><div class="ml">Scenario B — Portfolio at Retirement</div><div class="mv gold" id="ls-B-pf">—</div><div class="ms" id="ls-B-mo">—</div></div>
+          <div class="metric"><div class="ml">Scenario C — Portfolio at Retirement</div><div class="mv gold" id="ls-C-pf">—</div><div class="ms" id="ls-C-mo">—</div></div>
+        </div>
+        <div class="card flex-col" style="flex:1">
+          <div class="card-title">Net Worth Projection</div>
+          <div class="cw" style="height:200px"><canvas id="ls-chart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 scenario columns -->
+    <div class="g3 gap14">
+      <div class="sc-col" id="sc-A">
+        <div class="sc-head"><div class="sc-letter la">A</div><div><div style="font-weight:500;font-size:13px">Reality</div><div style="font-size:11px;color:var(--t3)">Conservative</div></div></div>
+        <!-- Marriage -->
+        <div class="ev"><div class="ev-name">💍 Marriage <button class="tog on" id="A-m-btn" onclick="togEv('A','m')">ON</button></div>
+          <div class="ev-grid" id="A-m-wrap">
+            <div class="ev-ig"><label>Wedding Age</label><input type="number" id="A-wAge" value="33"></div>
+            <div class="ev-ig"><label>Wedding Cost $</label><input type="number" id="A-wCost" value="10000"></div>
+            <div class="ev-ig"><label>Spouse Income $/yr</label><input type="number" id="A-sInc" value="50000"></div>
+            <div class="ev-ig"><label>Spouse Debt $</label><input type="number" id="A-sDebt" value="0"></div>
+          </div>
+        </div>
+        <!-- Home -->
+        <div class="ev"><div class="ev-name">🏠 Home Purchase <button class="tog on" id="A-h-btn" onclick="togEv('A','h')">ON</button></div>
+          <div class="ev-grid" id="A-h-wrap">
+            <div class="ev-ig"><label>Purchase Age</label><input type="number" id="A-hAge" value="34"></div>
+            <div class="ev-ig"><label>Home Price $</label><input type="number" id="A-hPrice" value="350000"></div>
+            <div class="ev-ig"><label>Down Payment %</label><input type="number" id="A-hDown" value="10"></div>
+            <div class="ev-ig"><label>Mortgage Rate %</label><input type="number" id="A-hRate" value="6.5"></div>
+            <div class="ev-ig"><label>Mortgage Term yrs</label><input type="number" id="A-hTerm" value="30"></div>
+            <div class="ev-ig"><label>Tax+Insurance $/yr</label><input type="number" id="A-hTax" value="5000"></div>
+          </div>
+        </div>
+        <!-- Kids -->
+        <div class="ev"><div class="ev-name">👶 Children <button class="tog on" id="A-k-btn" onclick="togEv('A','k')">ON</button></div>
+          <div class="ev-grid" id="A-k-wrap">
+            <div class="ev-ig"><label>Number of Kids</label><input type="number" id="A-kNum" value="2"></div>
+            <div class="ev-ig"><label>Age at First Child</label><input type="number" id="A-kAge" value="34"></div>
+            <div class="ev-ig"><label>Annual Cost/Child $</label><input type="number" id="A-kCost" value="5000"></div>
+            <div class="ev-ig"><label>Private School?</label><select id="A-kPriv"><option value="0">No</option><option value="1">Yes</option></select></div>
+            <div class="ev-ig"><label>Private Tuition $/child</label><input type="number" id="A-kTuition" value="0"></div>
+            <div class="ev-ig"><label>Spouse Works After Kids?</label><select id="A-kSpouseWork"><option value="1">Yes</option><option value="0">No</option></select></div>
+          </div>
+        </div>
+        <!-- 529 -->
+        <div class="ev"><div class="ev-name">🎓 529 College Savings <button class="tog on" id="A-529-btn" onclick="togEv('A','529')">ON</button></div>
+          <div class="ev-grid" id="A-529-wrap">
+            <div class="ev-ig"><label>Target/Child (today's $)</label><input type="number" id="A-529target" value="50000"></div>
+            <div class="ev-ig"><label>Monthly 529/Child $</label><input type="number" id="A-529mo" value="300"></div>
+          </div>
+        </div>
+        <!-- Retirement & Invest -->
+        <div class="ev"><div class="ev-name">📈 Retirement & Investing</div>
+          <div class="ev-grid">
+            <div class="ev-ig"><label>Target Retire Age</label><input type="number" id="A-retAge" value="70"></div>
+            <div class="ev-ig"><label>Annual 401k+IRA $</label><input type="number" id="A-ret401k" value="23500"></div>
+            <div class="ev-ig"><label>Employer Match %</label><input type="number" id="A-retMatch" value="6"></div>
+            <div class="ev-ig"><label>Side Hustle $/yr</label><input type="number" id="A-retHustle" value="12000"></div>
+          </div>
+        </div>
+        <!-- Vacation -->
+        <div class="ev"><div class="ev-name">✈️ Vacation <button class="tog on" id="A-v-btn" onclick="togEv('A','v')">ON</button></div>
+          <div class="ev-grid" id="A-v-wrap">
+            <div class="ev-ig"><label>Annual Budget $</label><input type="number" id="A-vBudget" value="3000"></div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--b)">
+          <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Monthly Withdrawal at Retirement</div>
+          <div style="font-family:var(--fm);font-size:20px" id="ls-A-wdl">—</div>
+        </div>
+      </div>
+
+      <div class="sc-col" id="sc-B">
+        <div class="sc-head"><div class="sc-letter lb">B</div><div><div style="font-weight:500;font-size:13px">Want</div><div style="font-size:11px;color:var(--t3)">Middle Path</div></div></div>
+        <div class="ev"><div class="ev-name">💍 Marriage <button class="tog on" id="B-m-btn" onclick="togEv('B','m')">ON</button></div>
+          <div class="ev-grid" id="B-m-wrap">
+            <div class="ev-ig"><label>Wedding Age</label><input type="number" id="B-wAge" value="34"></div>
+            <div class="ev-ig"><label>Wedding Cost $</label><input type="number" id="B-wCost" value="15000"></div>
+            <div class="ev-ig"><label>Spouse Income $/yr</label><input type="number" id="B-sInc" value="70000"></div>
+            <div class="ev-ig"><label>Spouse Debt $</label><input type="number" id="B-sDebt" value="0"></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">🏠 Home Purchase <button class="tog on" id="B-h-btn" onclick="togEv('B','h')">ON</button></div>
+          <div class="ev-grid" id="B-h-wrap">
+            <div class="ev-ig"><label>Purchase Age</label><input type="number" id="B-hAge" value="35"></div>
+            <div class="ev-ig"><label>Home Price $</label><input type="number" id="B-hPrice" value="450000"></div>
+            <div class="ev-ig"><label>Down Payment %</label><input type="number" id="B-hDown" value="10"></div>
+            <div class="ev-ig"><label>Mortgage Rate %</label><input type="number" id="B-hRate" value="6.5"></div>
+            <div class="ev-ig"><label>Mortgage Term yrs</label><input type="number" id="B-hTerm" value="30"></div>
+            <div class="ev-ig"><label>Tax+Insurance $/yr</label><input type="number" id="B-hTax" value="8000"></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">👶 Children <button class="tog on" id="B-k-btn" onclick="togEv('B','k')">ON</button></div>
+          <div class="ev-grid" id="B-k-wrap">
+            <div class="ev-ig"><label>Number of Kids</label><input type="number" id="B-kNum" value="2"></div>
+            <div class="ev-ig"><label>Age at First Child</label><input type="number" id="B-kAge" value="34"></div>
+            <div class="ev-ig"><label>Annual Cost/Child $</label><input type="number" id="B-kCost" value="5000"></div>
+            <div class="ev-ig"><label>Private School?</label><select id="B-kPriv"><option value="0">No</option><option value="1">Yes</option></select></div>
+            <div class="ev-ig"><label>Private Tuition $/child</label><input type="number" id="B-kTuition" value="12000"></div>
+            <div class="ev-ig"><label>Spouse Works After Kids?</label><select id="B-kSpouseWork"><option value="1">Yes</option><option value="0">No</option></select></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">🎓 529 College Savings <button class="tog on" id="B-529-btn" onclick="togEv('B','529')">ON</button></div>
+          <div class="ev-grid" id="B-529-wrap">
+            <div class="ev-ig"><label>Target/Child (today's $)</label><input type="number" id="B-529target" value="70000"></div>
+            <div class="ev-ig"><label>Monthly 529/Child $</label><input type="number" id="B-529mo" value="500"></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">📈 Retirement & Investing</div>
+          <div class="ev-grid">
+            <div class="ev-ig"><label>Target Retire Age</label><input type="number" id="B-retAge" value="66"></div>
+            <div class="ev-ig"><label>Annual 401k+IRA $</label><input type="number" id="B-ret401k" value="20000"></div>
+            <div class="ev-ig"><label>Employer Match %</label><input type="number" id="B-retMatch" value="6"></div>
+            <div class="ev-ig"><label>Side Hustle $/yr</label><input type="number" id="B-retHustle" value="5000"></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">✈️ Vacation <button class="tog on" id="B-v-btn" onclick="togEv('B','v')">ON</button></div>
+          <div class="ev-grid" id="B-v-wrap">
+            <div class="ev-ig"><label>Annual Budget $</label><input type="number" id="B-vBudget" value="5000"></div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--b)">
+          <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Monthly Withdrawal at Retirement</div>
+          <div style="font-family:var(--fm);font-size:20px" id="ls-B-wdl">—</div>
+        </div>
+      </div>
+
+      <div class="sc-col" id="sc-C">
+        <div class="sc-head"><div class="sc-letter lc">C</div><div><div style="font-weight:500;font-size:13px">Really Want</div><div style="font-size:11px;color:var(--t3)">Aspirational</div></div></div>
+        <div class="ev"><div class="ev-name">💍 Marriage <button class="tog on" id="C-m-btn" onclick="togEv('C','m')">ON</button></div>
+          <div class="ev-grid" id="C-m-wrap">
+            <div class="ev-ig"><label>Wedding Age</label><input type="number" id="C-wAge" value="34"></div>
+            <div class="ev-ig"><label>Wedding Cost $</label><input type="number" id="C-wCost" value="15000"></div>
+            <div class="ev-ig"><label>Spouse Income $/yr</label><input type="number" id="C-sInc" value="70000"></div>
+            <div class="ev-ig"><label>Spouse Debt $</label><input type="number" id="C-sDebt" value="0"></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">🏠 Home Purchase <button class="tog on" id="C-h-btn" onclick="togEv('C','h')">ON</button></div>
+          <div class="ev-grid" id="C-h-wrap">
+            <div class="ev-ig"><label>Purchase Age</label><input type="number" id="C-hAge" value="35"></div>
+            <div class="ev-ig"><label>Home Price $</label><input type="number" id="C-hPrice" value="550000"></div>
+            <div class="ev-ig"><label>Down Payment %</label><input type="number" id="C-hDown" value="10"></div>
+            <div class="ev-ig"><label>Mortgage Rate %</label><input type="number" id="C-hRate" value="4.5"></div>
+            <div class="ev-ig"><label>Mortgage Term yrs</label><input type="number" id="C-hTerm" value="30"></div>
+            <div class="ev-ig"><label>Tax+Insurance $/yr</label><input type="number" id="C-hTax" value="6000"></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">👶 Children <button class="tog on" id="C-k-btn" onclick="togEv('C','k')">ON</button></div>
+          <div class="ev-grid" id="C-k-wrap">
+            <div class="ev-ig"><label>Number of Kids</label><input type="number" id="C-kNum" value="3"></div>
+            <div class="ev-ig"><label>Age at First Child</label><input type="number" id="C-kAge" value="34"></div>
+            <div class="ev-ig"><label>Annual Cost/Child $</label><input type="number" id="C-kCost" value="5000"></div>
+            <div class="ev-ig"><label>Private School?</label><select id="C-kPriv"><option value="0">No</option><option value="1" selected>Yes</option></select></div>
+            <div class="ev-ig"><label>Private Tuition $/child</label><input type="number" id="C-kTuition" value="20000"></div>
+            <div class="ev-ig"><label>Spouse Works After Kids?</label><select id="C-kSpouseWork"><option value="1">Yes</option><option value="0" selected>No</option></select></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">🎓 529 College Savings <button class="tog on" id="C-529-btn" onclick="togEv('C','529')">ON</button></div>
+          <div class="ev-grid" id="C-529-wrap">
+            <div class="ev-ig"><label>Target/Child (today's $)</label><input type="number" id="C-529target" value="100000"></div>
+            <div class="ev-ig"><label>Monthly 529/Child $</label><input type="number" id="C-529mo" value="700"></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">📈 Retirement & Investing</div>
+          <div class="ev-grid">
+            <div class="ev-ig"><label>Target Retire Age</label><input type="number" id="C-retAge" value="62"></div>
+            <div class="ev-ig"><label>Annual 401k+IRA $</label><input type="number" id="C-ret401k" value="15620"></div>
+            <div class="ev-ig"><label>Employer Match %</label><input type="number" id="C-retMatch" value="6"></div>
+            <div class="ev-ig"><label>Side Hustle $/yr</label><input type="number" id="C-retHustle" value="95000"></div>
+          </div>
+        </div>
+        <div class="ev"><div class="ev-name">✈️ Vacation <button class="tog on" id="C-v-btn" onclick="togEv('C','v')">ON</button></div>
+          <div class="ev-grid" id="C-v-wrap">
+            <div class="ev-ig"><label>Annual Budget $</label><input type="number" id="C-vBudget" value="7000"></div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--b)">
+          <div style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Monthly Withdrawal at Retirement</div>
+          <div style="font-family:var(--fm);font-size:20px" id="ls-C-wdl">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub 1: Cost Breakdown -->
+  <div class="subpanel" id="ls-sub1">
+    <div class="card mt14">
+      <div class="card-title">Total Cost Breakdown — Every Dollar You'll Need Per Scenario <span class="ms">(Today's dollars unless noted)</span></div>
+      <div class="tw"><table><thead><tr><th>Category</th><th>Cost Item</th><th>🅰️ Scenario A</th><th>Detail</th><th>🅱️ Scenario B</th><th>Detail</th><th>🅲 Scenario C</th><th>Detail</th></tr></thead><tbody id="ls-cost-tbody"></tbody></table></div>
+    </div>
+    <div class="g2 gap14 mt14">
+      <div class="card">
+        <div class="card-title">Income Required — Annual Average (After-Tax)</div>
+        <div class="tw"><table><thead><tr><th>Category</th><th>Time Span</th><th>Sc A $/yr</th><th>Sc A $/mo</th><th>Sc B $/yr</th><th>Sc B $/mo</th><th>Sc C $/yr</th><th>Sc C $/mo</th></tr></thead><tbody id="ls-income-tbody"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Income Offsets & Net Required</div>
+        <div class="tw"><table><thead><tr><th>Item</th><th>Sc A</th><th>Sc B</th><th>Sc C</th></tr></thead><tbody id="ls-offset-tbody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub 2: Dashboard -->
+  <div class="subpanel" id="ls-sub2">
+    <div class="card mt14">
+      <div class="card-title">Scenario Comparison Dashboard — Key Metrics At-a-Glance</div>
+      <div class="tw"><table><thead><tr><th>Metric</th><th>🅰️ Scenario A</th><th>🅱️ Scenario B</th><th>🅲 Scenario C</th></tr></thead><tbody id="ls-dash-tbody"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- Sub 3: Year-by-Year -->
+  <div class="subpanel" id="ls-sub3">
+    <div class="card mt14">
+      <div class="card-title">Year-by-Year Life Forecast — Scenario A (40-Year Horizon)</div>
+      <div class="tw"><table>
+        <thead><tr><th>Yr</th><th>Age</th><th>Gross HH Income</th><th>After-Tax</th><th>Living Exp</th><th>Debt Pmt</th><th>Mortgage+Tax</th><th>Child Costs</th><th>529 Save</th><th>Retire Save</th><th>Side Hustle</th><th>Net Cash Flow</th><th>Portfolio</th><th>Dividend</th><th>Net Worth</th><th>Event</th></tr></thead>
+        <tbody id="ls-yr-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- Sub 4: Milestones -->
+  <div class="subpanel" id="ls-sub4">
+    <div class="card mt14">
+      <div class="card-title">Milestone & Goal Tracker — Scenario A</div>
+      <div class="tw"><table>
+        <thead><tr><th>Milestone</th><th>Target Age</th><th>Current Age</th><th>Years Away</th><th>Est. Cost</th><th>Save/Year</th><th>Status</th></tr></thead>
+        <tbody id="ls-mile-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PANEL 1 — COAST FIRE
+═══════════════════════════════════════════════════════════════ -->
+<div class="panel" id="p1">
+  <div class="sh mt20"><h1>Coast FIRE Planner</h1><p>Find when you can stop saving and let compound interest grow your portfolio to your retirement number on its own.</p></div>
+  <div class="stabs">
+    <button class="stab active" onclick="switchSub('cf',0)">📋 Inputs & Results</button>
+    <button class="stab" onclick="switchSub('cf',1)">📈 Year-by-Year Projection</button>
+    <button class="stab" onclick="switchSub('cf',2)">📚 Glossary</button>
+  </div>
+
+  <div class="subpanel active" id="cf-sub0">
+    <div class="g2 gap14 mt14" style="grid-template-columns:360px 1fr">
+      <div class="card">
+        <div class="card-title">Your Information</div>
+        <div class="ig2">
+          <div class="ig"><label>Current Age</label><div class="ir"><input type="number" id="cf-age" value="32"><span class="unit">yrs</span></div></div>
+          <div class="ig"><label>Retirement Age</label><div class="ir"><input type="number" id="cf-ret" value="65"><span class="unit">yrs</span></div></div>
+          <div class="ig"><label>Pre-Tax Investments (401k/IRA)</label><div class="ir"><input type="number" id="cf-pretax" value="15000"><span class="unit">$</span></div></div>
+          <div class="ig"><label>After-Tax Investments (Brokerage)</label><div class="ir"><input type="number" id="cf-aftertax" value="25000"><span class="unit">$</span></div></div>
+          <div class="ig"><label>Gross Annual Salary</label><div class="ir"><input type="number" id="cf-salary" value="150000"><span class="unit">$</span></div></div>
+          <div class="ig"><label>Pre-Tax Annual Contribution</label><div class="ir"><input type="number" id="cf-contPre" value="4000"><span class="unit">$</span></div></div>
+          <div class="ig"><label>After-Tax Annual Contribution</label><div class="ir"><input type="number" id="cf-contAfter" value="4000"><span class="unit">$</span></div></div>
+          <div class="ig"><label>Employer 401k Match %</label><div class="ir"><input type="number" id="cf-match" value="6"><span class="unit">%</span></div></div>
+          <div class="ig"><label>Retirement Spending (today's $)</label><div class="ir"><input type="number" id="cf-spend" value="100000"><span class="unit">$/yr</span></div></div>
+          <div class="ig"><label>Annual Return Rate</label><div class="ir"><input type="number" id="cf-rr" value="9.5"><span class="unit">%</span></div></div>
+          <div class="ig"><label>Inflation Rate</label><div class="ir"><input type="number" id="cf-inf" value="3"><span class="unit">%</span></div></div>
+          <div class="ig"><label>Safe Withdrawal Rate</label><div class="ir"><input type="number" id="cf-swr" value="5"><span class="unit">%</span></div></div>
+          <div class="ig"><label>SS Claiming Age</label><div class="ir"><input type="number" id="cf-ssAge" value="67"><span class="unit">yrs</span></div></div>
+          <div class="ig"><label>Monthly SS Benefit</label><div class="ir"><input type="number" id="cf-ss" value="2700"><span class="unit">$/mo</span></div></div>
+          <div class="ig"><label>Retirement Tax Rate (pre-tax accts)</label><div class="ir"><input type="number" id="cf-retTax" value="15"><span class="unit">%</span></div></div>
+        </div>
+        <div class="mt14"><button class="btn" onclick="computeFire()">Recalculate →</button></div>
+      </div>
+      <div class="flex flex-col gap14">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          <div class="metric"><div class="ml">Coast FIRE Number (w/ SS)</div><div class="mv gold" id="cf-cnum">—</div><div class="ms" id="cf-status">—</div></div>
+          <div class="metric"><div class="ml">Coast FIRE Age</div><div class="mv gold" id="cf-cage">—</div><div class="ms" id="cf-yaway">—</div></div>
+          <div class="metric"><div class="ml">Surplus / Shortfall</div><div class="mv" id="cf-surp">—</div></div>
+          <div class="metric"><div class="ml">Total Current Investments</div><div class="mv" id="cf-totalInv">—</div></div>
+          <div class="metric"><div class="ml">Total Annual Contribution (incl. match)</div><div class="mv" id="cf-totalCont">—</div></div>
+          <div class="metric"><div class="ml">Tax-Adj. Value (After-Tax Equiv.)</div><div class="mv" id="cf-taxAdj">—</div><div class="ms">effective purchasing power</div></div>
+          <div class="metric"><div class="ml">Full FIRE Number (no SS)</div><div class="mv" id="cf-fnum">—</div></div>
+          <div class="metric"><div class="ml">FIRE Number (with SS)</div><div class="mv" id="cf-fnumss">—</div></div>
+          <div class="metric"><div class="ml">Real Return (inflation-adj.)</div><div class="mv" id="cf-realr">—</div></div>
+        </div>
+        <div class="card" style="flex:1">
+          <div class="card-title">Portfolio vs. Coast FIRE Target</div>
+          <div class="cw" style="height:180px"><canvas id="cf-chart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subpanel" id="cf-sub1">
+    <div class="card mt14">
+      <div class="card-title">Year-by-Year Projection</div>
+      <div class="tw"><table>
+        <thead><tr><th>Yr</th><th>Age</th><th>Portfolio Start</th><th>Contribution</th><th>Growth</th><th>Portfolio End</th><th>Coast FIRE #</th><th>Surplus / Gap</th><th>Status</th><th>Progress</th><th>SS Income</th><th>Portfolio Withdrawal</th><th>Total Annual Income</th></tr></thead>
+        <tbody id="cf-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="subpanel" id="cf-sub2">
+    <div class="g2 gap14 mt14">
+      <div class="card"><div class="card-title">Key Terms Explained</div>
+        <div id="cf-glossary" style="display:flex;flex-direction:column;gap:14px"></div>
+      </div>
+      <div class="card"><div class="card-title">What Is Coast FIRE?</div>
+        <p style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:12px">Coast FIRE is the point where your invested assets are large enough that — even with ZERO additional contributions — compound growth alone will grow your portfolio to your full retirement number by your target retirement age.</p>
+        <p style="font-size:13px;color:var(--t2);line-height:1.8;margin-bottom:12px">Once you hit your Coast FIRE number, you only need income to cover current living expenses. You can switch to passion work, part-time, or lower-stress roles without worrying about retirement.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+          <div style="font-size:11px;color:var(--green)">✅ Freedom to choose lower-paying but fulfilling work</div>
+          <div style="font-size:11px;color:var(--green)">✅ Reduces financial stress — your future is already secured</div>
+          <div style="font-size:11px;color:var(--green)">✅ Enables career pivots, part-time work, or entrepreneurship</div>
+          <div style="font-size:11px;color:var(--green)">✅ Protects against burnout by removing the "must save" pressure</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PANEL 2 — DEBT & CREDIT
+═══════════════════════════════════════════════════════════════ -->
+<div class="panel" id="p2">
+  <div class="sh mt20"><h1>Debt Payoff & Credit Score Simulator</h1><p>Strategize payoff and see how your actions impact your credit score.</p></div>
+  <div class="stabs">
+    <button class="stab active" onclick="switchSub('d',0)">💳 Debt Payoff</button>
+    <button class="stab" onclick="switchSub('d',1)">🏦 Credit Score Simulator</button>
+    <button class="stab" onclick="switchSub('d',2)">📊 Summary & Action Plan</button>
+  </div>
+
+  <div class="subpanel active" id="d-sub0">
+    <div class="card mt14 mb14">
+      <div class="card-title">Debt Inventory — Edit any field to recalculate</div>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th>Debt Name</th><th>Balance $</th><th>APR %</th><th>Min Payment $/mo</th><th>Extra Pmt $/mo</th><th>Months Left</th><th>Total Interest</th><th>Total Paid</th><th>Avalanche Rank</th><th>Snowball Rank</th></tr></thead>
+        <tbody id="d-tbody"></tbody>
+        <tfoot><tr>
+          <td colspan="2" style="font-family:var(--fb);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Totals</td>
+          <td id="d-ttlBal">—</td><td style="font-family:var(--fm);font-size:11px" id="d-ttlAPR">—</td>
+          <td id="d-ttlMin">—</td><td id="d-ttlExtra">—</td>
+          <td id="d-ttlMo">—</td><td id="d-ttlInt">—</td><td id="d-ttlPaid">—</td><td colspan="2"></td>
+        </tr></tfoot>
+      </table></div>
+    </div>
+
+    <div class="g2 gap14 mb14" style="grid-template-columns:300px 1fr">
+      <div class="card">
+        <div class="card-title">Extra Monthly Budget</div>
+        <div class="ig" style="margin-bottom:14px">
+          <label>Extra $ you can throw at debt each month</label>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <input type="range" id="d-slider" min="0" max="3000" step="50" value="500" oninput="document.getElementById('d-extra').value=this.value;buildDebt()">
+            <input type="number" id="d-extra" value="500" style="background:var(--s2);border:1px solid var(--b);color:var(--text);font-family:var(--fm);font-size:13px;padding:5px 8px;border-radius:6px;width:85px;outline:none" oninput="document.getElementById('d-slider').value=this.value;buildDebt()">
+            <span class="unit">$/mo</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="metric"><div class="ml">Total Balance</div><div class="mv" id="d-m-bal">—</div></div>
+          <div class="metric"><div class="ml">Min Monthly</div><div class="mv" id="d-m-min">—</div></div>
+          <div class="metric"><div class="ml">Weighted APR</div><div class="mv red" id="d-m-apr">—</div></div>
+          <div class="metric"><div class="ml">Debt-to-Income</div><div class="mv" id="d-m-dti">—</div></div>
+        </div>
+      </div>
+      <div class="flex flex-col gap10">
+        <div class="strat">
+          <div class="strat-title">🐢 Minimum Only — Baseline</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+            <div><div class="ml">Monthly Pmt</div><div style="font-family:var(--fm);font-size:13px" id="sm-pmt">—</div></div>
+            <div><div class="ml">Total Interest</div><div style="font-family:var(--fm);font-size:13px;color:var(--red)" id="sm-int">—</div></div>
+            <div><div class="ml">Total Paid</div><div style="font-family:var(--fm);font-size:13px" id="sm-paid">—</div></div>
+            <div><div class="ml">Debt-Free Date</div><div style="font-family:var(--fm);font-size:13px" id="sm-date">—</div></div>
+          </div>
+        </div>
+        <div class="strat best">
+          <div class="strat-title">🔥 Avalanche (Highest APR First) <span class="badge bo">Best for $</span></div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+            <div><div class="ml">Monthly Pmt</div><div style="font-family:var(--fm);font-size:13px" id="sa-pmt">—</div></div>
+            <div><div class="ml">Total Interest</div><div style="font-family:var(--fm);font-size:13px;color:var(--green)" id="sa-int">—</div></div>
+            <div><div class="ml">Interest Saved</div><div style="font-family:var(--fm);font-size:13px;color:var(--gold)" id="sa-saved">—</div></div>
+            <div><div class="ml">Debt-Free Date</div><div style="font-family:var(--fm);font-size:13px" id="sa-date">—</div></div>
+            <div><div class="ml">Time Saved</div><div style="font-family:var(--fm);font-size:13px;color:var(--gold)" id="sa-time">—</div></div>
+          </div>
+        </div>
+        <div class="strat">
+          <div class="strat-title">❄️ Snowball (Lowest Balance First) <span class="badge bb">Best for motivation</span></div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+            <div><div class="ml">Monthly Pmt</div><div style="font-family:var(--fm);font-size:13px" id="sb-pmt">—</div></div>
+            <div><div class="ml">Total Interest</div><div style="font-family:var(--fm);font-size:13px" id="sb-int">—</div></div>
+            <div><div class="ml">Interest Saved</div><div style="font-family:var(--fm);font-size:13px;color:var(--gold)" id="sb-saved">—</div></div>
+            <div><div class="ml">Debt-Free Date</div><div style="font-family:var(--fm);font-size:13px" id="sb-date">—</div></div>
+            <div><div class="ml">Time Saved</div><div style="font-family:var(--fm);font-size:13px;color:var(--gold)" id="sb-time">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Balance Paydown Timeline</div>
+      <div class="cw" style="height:280px"><canvas id="d-chart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="subpanel" id="d-sub1">
+    <div class="g2 gap14 mt14">
+      <!-- Left: inputs + score -->
+      <div class="flex flex-col gap14">
+        <div class="card">
+          <div class="card-title">Your Current Credit Profile</div>
+          <div class="ig2">
+            <div class="ig"><label>Current Credit Score</label><div class="ir"><input type="number" id="cr-score" value="662" oninput="computeCredit()"><span class="unit">pts</span></div></div>
+            <div class="ig"><label># Open Credit Accounts</label><div class="ir"><input type="number" id="cr-accts" value="51" oninput="computeCredit()"></div></div>
+            <div class="ig"><label>Total CC Limits $</label><div class="ir"><input type="number" id="cr-ccLim" value="2800" oninput="computeCredit()"><span class="unit">$</span></div></div>
+            <div class="ig"><label>Total CC Balances $</label><div class="ir"><input type="number" id="cr-ccBal" value="2566" oninput="computeCredit()"><span class="unit">$</span></div></div>
+            <div class="ig"><label>Oldest Account Age</label><div class="ir"><input type="number" id="cr-oldest" value="12.5" oninput="computeCredit()"><span class="unit">yrs</span></div></div>
+            <div class="ig"><label>Average Account Age</label><div class="ir"><input type="number" id="cr-avgAge" value="6.5" oninput="computeCredit()"><span class="unit">yrs</span></div></div>
+            <div class="ig"><label>Late Payments (2 yrs)</label><div class="ir"><input type="number" id="cr-late" value="2" oninput="computeCredit()"></div></div>
+            <div class="ig"><label>Hard Inquiries (2 yrs)</label><div class="ir"><input type="number" id="cr-inq" value="0" oninput="computeCredit()"></div></div>
+            <div class="ig"><label>Collections / Charge-offs</label><div class="ir"><input type="number" id="cr-coll" value="1" oninput="computeCredit()"></div></div>
+            <div class="ig"><label>Has Mortgage? (1=Yes)</label><div class="ir"><input type="number" id="cr-mort" value="0" min="0" max="1" oninput="computeCredit()"></div></div>
+            <div class="ig"><label>Has Installment Loan? (1=Yes)</label><div class="ir"><input type="number" id="cr-inst" value="1" min="0" max="1" oninput="computeCredit()"></div></div>
+            <div class="ig"><label>Has Student Loan? (1=Yes)</label><div class="ir"><input type="number" id="cr-student" value="1" min="0" max="1" oninput="computeCredit()"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Estimated Credit Score</div>
+          <div class="score-arc">
+            <div class="score-num" id="cr-est-score">—</div>
+            <div class="score-label" id="cr-est-label">—</div>
+            <div style="margin-top:8px;display:flex;justify-content:center"><span class="badge" id="cr-est-badge">—</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- Right: FICO breakdown + actions -->
+      <div class="flex flex-col gap14">
+        <div class="card">
+          <div class="card-title">FICO Score Component Breakdown</div>
+          <div id="cr-fico-rows" style="margin-bottom:12px"></div>
+          <div class="tw" style="max-height:220px"><table>
+            <thead><tr><th>Component</th><th>Weight</th><th>Component Score</th><th>Weighted</th><th>Rating</th><th>How to Improve</th></tr></thead>
+            <tbody id="cr-fico-tbody"></tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Credit Score Range Guide</div>
+          <div id="cr-range-guide"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt14">
+      <div class="card-title">🎮 Credit Score Action Simulator — "What If I..."</div>
+      <div class="card-sub mb14">Toggle actions to see estimated score impact. Stack multiple actions!</div>
+      <div class="g2 gap14">
+        <div id="cr-actions-left" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div class="flex flex-col gap10">
+          <div class="metric"><div class="ml">Current Estimated Score</div><div class="mv" id="cr-sim-current">—</div></div>
+          <div class="metric"><div class="ml">Simulated New Score</div><div class="mv green" id="cr-sim-new">—</div></div>
+          <div class="metric"><div class="ml">Total Point Impact</div><div class="mv gold" id="cr-sim-delta">—</div></div>
+          <div class="metric"><div class="ml">Simulated Rating</div><div class="mv" id="cr-sim-label">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subpanel" id="d-sub2">
+    <div class="g2 gap14 mt14">
+      <div class="card">
+        <div class="card-title">📊 Key Debt & Credit Summary</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="d-summary-grid"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🚀 Your Personalized Action Plan</div>
+        <div id="d-action-plan"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const gv = id => parseFloat($(id).value) || 0;
+const gi = id => parseInt($(id).value) || 0;
+
+function fmt(n, dec=0) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  const sign = n < 0 ? '-$' : '$';
+  const abs = Math.abs(n);
+  if (abs >= 1e6) return sign + (abs/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return sign + Math.round(abs).toLocaleString();
+  return sign + abs.toFixed(dec);
+}
+function fmtPct(n, d=2) { return isNaN(n) ? '—' : n.toFixed(d) + '%'; }
+function fmtN(n, d=0) { return isNaN(n) ? '—' : (n < 0 ? '-' : '') + Math.abs(n).toFixed(d); }
+function addMonths(m) {
+  const d = new Date(); d.setMonth(d.getMonth() + Math.round(m));
+  return d.toLocaleDateString('en-US', {month:'short', year:'numeric'});
+}
+function mortPmt(P, annR, years) {
+  if (annR === 0) return P / (years * 12);
+  const r = annR / 12, n = years * 12;
+  return P * r / (1 - Math.pow(1+r, -n));
+}
+function cell(txt, cls='') { return `<td${cls?' class="'+cls+'"':''}>${txt}</td>`; }
+function td(v, cls='') { return `<td class="${cls}" style="font-family:var(--fm);font-size:11px">${v}</td>`; }
+
+// ══════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════
+const mainTabs = document.querySelectorAll('.tab');
+const mainPanels = document.querySelectorAll('.panel');
+function switchMain(i) {
+  mainTabs.forEach((t,j) => t.classList.toggle('active', i===j));
+  mainPanels.forEach((p,j) => p.classList.toggle('active', i===j));
+  if(i===0) computeAll();
+  if(i===1) computeFire();
+  if(i===2) { buildDebt(); computeCredit(); }
+}
+
+function switchSub(prefix, i) {
+  const stabs = document.querySelectorAll(`.stab`);
+  // find stabs inside the active panel
+  const active = document.querySelector('.panel.active');
+  if (!active) return;
+  const sts = active.querySelectorAll('.stab');
+  const sps = active.querySelectorAll('.subpanel');
+  sts.forEach((t,j) => t.classList.toggle('active', i===j));
+  sps.forEach((p,j) => p.classList.toggle('active', i===j));
+}
+
+// ══════════════════════════════════════════════════════
+// EVENT TOGGLES
+// ══════════════════════════════════════════════════════
+const evState = {
+  A:{m:true,h:true,k:true,'529':true,v:true},
+  B:{m:true,h:true,k:true,'529':true,v:true},
+  C:{m:true,h:true,k:true,'529':true,v:true}
+};
+function togEv(sc, ev) {
+  evState[sc][ev] = !evState[sc][ev];
+  const on = evState[sc][ev];
+  const btn = $(`${sc}-${ev}-btn`);
+  if (btn) { btn.textContent = on ? 'ON' : 'OFF'; btn.className = 'tog '+(on?'on':'off'); }
+  const wrap = $(`${sc}-${ev}-wrap`);
+  if (wrap) {
+    wrap.querySelectorAll('input,select').forEach(el => el.disabled = !on);
+    wrap.style.opacity = on ? '1' : '0.3';
+  }
+  computeAll();
+}
+
+// ══════════════════════════════════════════════════════
+// LIFE SCENARIO ENGINE
+// ══════════════════════════════════════════════════════
+function getScenarioInputs(sc) {
+  return {
+    marry: evState[sc].m,
+    wAge: gv(`${sc}-wAge`), wCost: gv(`${sc}-wCost`),
+    sInc: gv(`${sc}-sInc`), sDebt: gv(`${sc}-sDebt`),
+    buyHome: evState[sc].h,
+    hAge: gv(`${sc}-hAge`), hPrice: gv(`${sc}-hPrice`),
+    hDown: gv(`${sc}-hDown`)/100, hRate: gv(`${sc}-hRate`)/100,
+    hTerm: gv(`${sc}-hTerm`) || 30, hTax: gv(`${sc}-hTax`),
+    haveKids: evState[sc].k,
+    kNum: gi(`${sc}-kNum`), kAge: gv(`${sc}-kAge`),
+    kCost: gv(`${sc}-kCost`),
+    kPriv: parseInt($(`${sc}-kPriv`).value),
+    kTuition: gv(`${sc}-kTuition`),
+    kSpouseWork: parseInt($(`${sc}-kSpouseWork`).value),
+    save529: evState[sc]['529'],
+    t529mo: gv(`${sc}-529mo`) * 12,
+    retAge: gv(`${sc}-retAge`), ret401k: gv(`${sc}-ret401k`),
+    retMatch: gv(`${sc}-retMatch`)/100,
+    hustle: gv(`${sc}-retHustle`),
+    vacation: evState[sc].v ? gv(`${sc}-vBudget`) : 0,
+  };
+}
+
+function runScenario(sc) {
+  const age0 = gv('ls-age'), inc0 = gv('ls-inc'), raise = gv('ls-raise')/100;
+  const tax = gv('ls-tax')/100, inv0 = gv('ls-inv');
+  const ret = gv('ls-ret')/100, inf = gv('ls-inf')/100;
+  const debtPmt = gv('ls-debtpmt') * 12, debt0 = gv('ls-debt');
+  const exp0 = gv('ls-exp') * 12;
+  const s = getScenarioInputs(sc);
+  const matchAmt = s.retMatch * inc0; // employer match (first year approx)
+
+  let pf = inv0, gi2 = inc0, debtLeft = debt0;
+  const debtPayoffYears = debtPmt > 0 ? debt0 / debtPmt : 999;
+  const years = [];
+  const maxYears = Math.max(s.retAge - age0, 40);
+
+  for (let y = 0; y <= maxYears; y++) {
+    const ca = age0 + y;
+    if (y > 0) gi2 *= (1 + raise);
+    const spouseWorking = s.marry && ca >= s.wAge && (s.kSpouseWork || !s.haveKids || ca < s.kAge);
+    const grossHH = gi2 + (spouseWorking ? s.sInc : 0) + s.hustle;
+    const afterTax = gi2 * (1 - tax) + (spouseWorking ? s.sInc * (1-tax) : 0) + s.hustle;
+    const lifeExp = exp0 * Math.pow(1 + inf, y);
+    const debt = ca <= age0 + debtPayoffYears ? debtPmt : 0;
+    const mortAnn = s.buyHome && ca >= s.hAge && ca < s.hAge + s.hTerm
+      ? mortPmt(s.hPrice*(1-s.hDown), s.hRate, s.hTerm)*12 + s.hTax : 0;
+    // child costs (ages 0-17 per kid)
+    let childCost = 0;
+    if (s.haveKids && ca >= s.kAge) {
+      for (let k = 0; k < s.kNum; k++) {
+        const childAge = ca - s.kAge - k; // rough spacing of 2 yrs but treat as simultaneous for simplicity
+        if (childAge >= 0 && childAge < 18) {
+          childCost += s.kCost;
+          if (s.kPriv && childAge >= 5) childCost += s.kTuition;
+        }
+      }
+    }
+    const save529 = s.haveKids && s.save529 && ca >= s.kAge && ca < s.kAge + 18 ? s.t529mo * s.kNum : 0;
+    const retSave = ca < s.retAge ? s.ret401k + matchAmt : 0;
+    const vac = ca < s.retAge ? s.vacation : 0;
+    const netCF = afterTax - lifeExp - debt - mortAnn - childCost - save529 - retSave - vac;
+    // 30% of positive net cash flow into investments
+    const invest = ca < s.retAge ? Math.max(0, netCF * 0.3) : 0;
+    pf = pf * (1 + ret) + invest + (ca < s.retAge ? retSave : 0);
+    const divInc = pf * 0.02;
+    const netWorth = pf + (s.buyHome && ca >= s.hAge ? s.hPrice * (1 + 0.03 * (ca - s.hAge)) : 0) - (debtLeft > 0 ? debtLeft : 0);
+    debtLeft = Math.max(0, debtLeft - debtPmt);
+    years.push({ y, ca, grossHH, afterTax, lifeExp, debt, mortAnn, childCost, save529, retSave, hustle:s.hustle, netCF, pf, divInc, netWorth,
+      event: (s.marry && ca===s.wAge?'💍 ':'') + (s.buyHome && ca===s.hAge?'🏠 ':'') + (s.haveKids && ca===s.kAge?'👶 ':'') + (ca===s.retAge?'🎉 Retired!':'') });
+  }
+  return years;
+}
+
+let lsChart = null;
+function computeAll() {
+  const swr = gv('ls-swr')/100;
+  const colors = {A:'#c9a84c', B:'#4a8fd4', C:'#3db57e'};
+  const datasets = [];
+  const allYears = {};
+
+  ['A','B','C'].forEach(sc => {
+    const yrs = runScenario(sc);
+    allYears[sc] = yrs;
+    const retAge = gv(`${sc}-retAge`);
+    const retYr = yrs.find(y => y.ca >= retAge) || yrs[yrs.length-1];
+    const finalPF = retYr ? retYr.pf : 0;
+    const mo = finalPF * swr / 12;
+    $(`ls-${sc}-pf`).textContent = fmt(finalPF);
+    $(`ls-${sc}-mo`).textContent = fmt(mo)+'/mo withdrawal';
+    $(`ls-${sc}-wdl`).textContent = fmt(mo)+'/mo';
+    $(`ls-${sc}-wdl`).style.color = mo > 0 ? 'var(--green)' : 'var(--red)';
+    datasets.push({
+      label:`Scenario ${sc}`, data: yrs.map(y=>Math.max(0,y.pf)),
+      borderColor: colors[sc], backgroundColor: colors[sc]+'14',
+      fill: sc==='A', tension:.4, pointRadius:0, borderWidth:2
+    });
+  });
+
+  const labels = allYears['A'].map(y => 'Age '+y.ca);
+  if (lsChart) lsChart.destroy();
+  lsChart = new Chart($('ls-chart'), {
+    type:'line', data:{labels, datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8a8d98',font:{size:10},boxWidth:10,padding:12}},
+        tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},
+      scales:{
+        x:{ticks:{color:'#4e5159',font:{size:10},maxTicksLimit:10},grid:{color:'rgba(255,255,255,.025)'}},
+        y:{ticks:{color:'#4e5159',font:{size:10},callback:v=>fmt(v)},grid:{color:'rgba(255,255,255,.025)'}}
+      }
+    }
+  });
+
+  buildCostBreakdown(allYears);
+  buildDashboard(allYears);
+  buildYearByYear(allYears['A']);
+  buildMilestones(allYears['A']);
+}
+
+function buildCostBreakdown(allYears) {
+  function scCost(sc) {
+    const s = getScenarioInputs(sc);
+    const age0 = gv('ls-age'), retAge = s.retAge;
+    const years = retAge - age0;
+    const downPmt = s.buyHome ? s.hPrice * s.hDown : 0;
+    const loan = s.buyHome ? s.hPrice - downPmt : 0;
+    const mPmt = s.buyHome ? mortPmt(loan, s.hRate, s.hTerm) : 0;
+    const mortTotal = mPmt * s.hTerm * 12;
+    const mortInt = mortTotal - loan;
+    const propTax = s.buyHome ? s.hTax * s.hTerm : 0;
+    const childBase = s.haveKids ? s.kCost * s.kNum * 18 : 0;
+    const privateSchool = s.haveKids && s.kPriv ? s.kTuition * s.kNum * 13 : 0;
+    const college = s.haveKids ? (gv(`${sc}-529target`) * s.kNum) : 0;
+    const fire = (gv('ls-exp')*12) / (gv('ls-swr')/100);
+    const vacTotal = s.vacation * years;
+    return {s, downPmt, loan, mPmt, mortTotal, mortInt, propTax, childBase, privateSchool, college, fire, vacTotal,
+      grandTotal: (s.buyHome?downPmt:0)+(s.buyHome?mortInt:0)+(s.buyHome?propTax:0)+childBase+privateSchool+college+fire+vacTotal+(s.marry?s.wCost:0)};
+  }
+  const ca = {A:scCost('A'), B:scCost('B'), C:scCost('C')};
+  const rows = [
+    {cat:'💍 MARRIAGE', items:[
+      ['Wedding Cost (one-time)', [fmt(ca.A.s.marry?ca.A.s.wCost:0),`Age ${ca.A.s.wAge}`],[fmt(ca.B.s.marry?ca.B.s.wCost:0),`Age ${ca.B.s.wAge}`],[fmt(ca.C.s.marry?ca.C.s.wCost:0),`Age ${ca.C.s.wAge}`]],
+      ['Spouse Income Gained (+)', [fmt(ca.A.s.sInc),'/ year'],[fmt(ca.B.s.sInc),'/ year'],[fmt(ca.C.s.kSpouseWork?ca.C.s.sInc:0),'/ year (if works)']],
+    ]},
+    {cat:'🏠 HOME PURCHASE', items:[
+      ['Home Price', [fmt(ca.A.s.hPrice),`Age ${ca.A.s.hAge}`],[fmt(ca.B.s.hPrice),`Age ${ca.B.s.hAge}`],[fmt(ca.C.s.hPrice),`Age ${ca.C.s.hAge}`]],
+      ['⭐ Down Payment', [fmt(ca.A.downPmt),'cash up-front'],[fmt(ca.B.downPmt),'cash up-front'],[fmt(ca.C.downPmt),'cash up-front']],
+      ['Mortgage Loan Amount', [fmt(ca.A.loan),`${ca.A.s.hTerm}yr @ ${ca.A.s.hRate*100}%`],[fmt(ca.B.loan),`${ca.B.s.hTerm}yr @ ${ca.B.s.hRate*100}%`],[fmt(ca.C.loan),`${ca.C.s.hTerm}yr @ ${ca.C.s.hRate*100}%`]],
+      ['⭐ Monthly Mortgage', [fmt(ca.A.mPmt),'/ month'],[fmt(ca.B.mPmt),'/ month'],[fmt(ca.C.mPmt),'/ month']],
+      ['Total Interest on Mortgage', [fmt(ca.A.mortInt),'interest'],[fmt(ca.B.mortInt),'interest'],[fmt(ca.C.mortInt),'interest']],
+      ['Annual Property Tax + Insurance', [fmt(ca.A.s.hTax),'/ year'],[fmt(ca.B.s.hTax),'/ year'],[fmt(ca.C.s.hTax),'/ year']],
+      ['🏠 TOTAL HOUSING COST (life of loan)', [fmt(ca.A.downPmt+ca.A.mortInt+ca.A.propTax),''],[fmt(ca.B.downPmt+ca.B.mortInt+ca.B.propTax),''],[fmt(ca.C.downPmt+ca.C.mortInt+ca.C.propTax),'']],
+    ]},
+    {cat:'👶 CHILDREN & EDUCATION', items:[
+      ['Annual Cost per Child', [fmt(ca.A.s.kCost),`${ca.A.s.kNum} kid(s)`],[fmt(ca.B.s.kCost),`${ca.B.s.kNum} kid(s)`],[fmt(ca.C.s.kCost),`${ca.C.s.kNum} kid(s)`]],
+      ['⭐ Total Raising Cost (0-17)', [fmt(ca.A.childBase),'18 yrs × kids'],[fmt(ca.B.childBase),'18 yrs × kids'],[fmt(ca.C.childBase),'18 yrs × kids']],
+      ['⭐ Private School Total (K-12)', [fmt(ca.A.privateSchool),ca.A.s.kPriv?'K-12 ✅':'Public 🏫'],[fmt(ca.B.privateSchool),ca.B.s.kPriv?'K-12 ✅':'Public 🏫'],[fmt(ca.C.privateSchool),ca.C.s.kPriv?'K-12 ✅':'Public 🏫']],
+      ['⭐ College Savings Target (all kids)', [fmt(ca.A.college),`$${(gv('A-529target')/1000).toFixed(0)}K × ${ca.A.s.kNum}`],[fmt(ca.B.college),`$${(gv('B-529target')/1000).toFixed(0)}K × ${ca.B.s.kNum}`],[fmt(ca.C.college),`$${(gv('C-529target')/1000).toFixed(0)}K × ${ca.C.s.kNum}`]],
+      ['Monthly 529 Saving (all kids)', [fmt(ca.A.s.t529mo/12*ca.A.s.kNum),'/ month'],[fmt(ca.B.s.t529mo/12*ca.B.s.kNum),'/ month'],[fmt(ca.C.s.t529mo/12*ca.C.s.kNum),'/ month']],
+    ]},
+    {cat:'📈 RETIREMENT', items:[
+      ['Annual 401k + IRA', [fmt(ca.A.s.ret401k),'/ year'],[fmt(ca.B.s.ret401k),'/ year'],[fmt(ca.C.s.ret401k),'/ year']],
+      ['FIRE Number (portfolio needed)', [fmt(ca.A.fire),`Retire @ ${ca.A.s.retAge}`],[fmt(ca.B.fire),`Retire @ ${ca.B.s.retAge}`],[fmt(ca.C.fire),`Retire @ ${ca.C.s.retAge}`]],
+      ['Side Hustle / Passive Income', [fmt(ca.A.s.hustle),'/ year'],[fmt(ca.B.s.hustle),'/ year'],[fmt(ca.C.s.hustle),'/ year']],
+    ]},
+    {cat:'✈️ VACATION', items:[
+      ['Annual Vacation Budget', [fmt(ca.A.s.vacation),'/ year'],[fmt(ca.B.s.vacation),'/ year'],[fmt(ca.C.s.vacation),'/ year']],
+      ['Total Vacation Cost (lifetime)', [fmt(ca.A.vacTotal),`${ca.A.s.retAge-gv('ls-age')} years`],[fmt(ca.B.vacTotal),`${ca.B.s.retAge-gv('ls-age')} years`],[fmt(ca.C.vacTotal),`${ca.C.s.retAge-gv('ls-age')} years`]],
+    ]},
+    {grand: true, items:[['🔴 GRAND TOTAL — LIFETIME MONEY NEEDED',[fmt(ca.A.grandTotal),''],[fmt(ca.B.grandTotal),''],[fmt(ca.C.grandTotal),'']]]},
+  ];
+
+  let html = '';
+  rows.forEach(section => {
+    if (section.cat) html += `<tr><td class="cat" colspan="8">${section.cat}</td></tr>`;
+    section.items.forEach(([name, a, b, c]) => {
+      const isStar = name.startsWith('⭐') || name.startsWith('🔴');
+      html += `<tr${isStar?' style="font-weight:500"':''}>
+        <td class="label" colspan="2" style="padding-left:${section.grand?'10px':'20px'}">${name}</td>
+        <td style="font-family:var(--fm);font-size:11px;color:${section.grand?'var(--gold)':'var(--text)'}">${a[0]}</td><td style="font-size:10px;color:var(--t3)">${a[1]}</td>
+        <td style="font-family:var(--fm);font-size:11px;color:${section.grand?'var(--gold)':'var(--text)'}">${b[0]}</td><td style="font-size:10px;color:var(--t3)">${b[1]}</td>
+        <td style="font-family:var(--fm);font-size:11px;color:${section.grand?'var(--gold)':'var(--text)'}">${c[0]}</td><td style="font-size:10px;color:var(--t3)">${c[1]}</td>
+      </tr>`;
+    });
+  });
+  $('ls-cost-tbody').innerHTML = html;
+
+  // Income required
+  function incomeReq(sc) {
+    const s = getScenarioInputs(sc);
+    const age0 = gv('ls-age'); const yrs = s.retAge - age0;
+    const exp = gv('ls-exp')*12, tax = gv('ls-tax')/100;
+    const debt = gv('ls-debtpmt')*12, inc = gv('ls-inc');
+    const downPmt = s.buyHome ? s.hPrice*s.hDown : 0;
+    const mPmt = s.buyHome ? mortPmt(s.hPrice*(1-s.hDown), s.hRate, s.hTerm)*12 + s.hTax : 0;
+    return {
+      exp, debt, mort: mPmt, child: s.haveKids ? s.kCost*s.kNum : 0,
+      priv: s.haveKids&&s.kPriv ? s.kTuition*s.kNum : 0,
+      c529: s.haveKids&&s.save529 ? s.t529mo*12*s.kNum/12 : 0,
+      ret: s.ret401k, wed: s.marry ? s.wCost/yrs : 0, down: downPmt/yrs,
+      vac: s.vacation, total: 0, gross: 0,
+      spouseInc: s.marry ? s.sInc : 0, hustle: s.hustle,
+      inc0: inc
+    };
+  }
+  const ir = {A: incomeReq('A'), B: incomeReq('B'), C: incomeReq('C')};
+  const incRows = [
+    ['💰 Living Expenses', 'Annual', r=>r.exp, r=>r.exp/12],
+    ['💳 Debt Payments', 'Until paid off', r=>r.debt, r=>r.debt/12],
+    ['🏠 Mortgage + Tax/Ins', 'Loan term', r=>r.mort, r=>r.mort/12],
+    ['👶 Child Costs (0-17)', '18 yrs × kids', r=>r.child, r=>r.child/12],
+    ['🎓 Private School', 'K-12 × kids', r=>r.priv, r=>r.priv/12],
+    ['🎓 529 College Savings', '18 yrs saving', r=>r.c529, r=>r.c529/12],
+    ['📈 Retirement Savings', 'To retirement', r=>r.ret, r=>r.ret/12],
+    ['💍 Wedding (one-time, avg)', 'Age at wedding', r=>r.wed, r=>r.wed/12],
+    ['🏠 Down Payment (one-time, avg)', 'Age of purchase', r=>r.down, r=>r.down/12],
+    ['✈️ Vacation (1/yr)', 'Annual', r=>r.vac, r=>r.vac/12],
+  ];
+  const ttlA = incRows.reduce((s,row)=>s+row[2](ir.A),0);
+  const ttlB = incRows.reduce((s,row)=>s+row[2](ir.B),0);
+  const ttlC = incRows.reduce((s,row)=>s+row[2](ir.C),0);
+  const tax = gv('ls-tax')/100;
+  let incHtml = '';
+  incRows.forEach(([name, span, a, amo]) => {
+    incHtml += `<tr><td class="label">${name}</td><td style="font-size:10px;color:var(--t3)">${span}</td>
+      <td style="font-family:var(--fm);font-size:11px">${fmt(a(ir.A))}</td><td style="font-family:var(--fm);font-size:10px;color:var(--t3)">${fmt(amo(ir.A))}</td>
+      <td style="font-family:var(--fm);font-size:11px">${fmt(a(ir.B))}</td><td style="font-family:var(--fm);font-size:10px;color:var(--t3)">${fmt(amo(ir.B))}</td>
+      <td style="font-family:var(--fm);font-size:11px">${fmt(a(ir.C))}</td><td style="font-family:var(--fm);font-size:10px;color:var(--t3)">${fmt(amo(ir.C))}</td>
+    </tr>`;
+  });
+  incHtml += `<tr style="border-top:1px solid var(--b)"><td class="label" style="color:var(--red)">🔴 Total After-Tax Outflows</td><td style="font-size:10px;color:var(--t3)">After-Tax $</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--red)">${fmt(ttlA)}</td><td style="font-family:var(--fm);font-size:10px;color:var(--red)">${fmt(ttlA/12)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--red)">${fmt(ttlB)}</td><td style="font-family:var(--fm);font-size:10px;color:var(--red)">${fmt(ttlB/12)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--red)">${fmt(ttlC)}</td><td style="font-family:var(--fm);font-size:10px;color:var(--red)">${fmt(ttlC/12)}</td>
+  </tr>`;
+  const grA=ttlA/(1-tax), grB=ttlB/(1-tax), grC=ttlC/(1-tax);
+  incHtml += `<tr><td class="label" style="color:var(--gold)">🔴 Gross Income Needed (pre-tax)</td><td style="font-size:10px;color:var(--t3)">÷ (1-tax)</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--gold)">${fmt(grA)}</td><td style="font-family:var(--fm);font-size:10px;color:var(--gold)">${fmt(grA/12)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--gold)">${fmt(grB)}</td><td style="font-family:var(--fm);font-size:10px;color:var(--gold)">${fmt(grB/12)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--gold)">${fmt(grC)}</td><td style="font-family:var(--fm);font-size:10px;color:var(--gold)">${fmt(grC/12)}</td>
+  </tr>`;
+  $('ls-income-tbody').innerHTML = incHtml;
+
+  // Offsets
+  const offsets = [
+    ['👫 Spouse Income (gross)', [fmt(ir.A.spouseInc)],[fmt(ir.B.spouseInc)],[fmt(ir.C.spouseInc)]],
+    ['💼 Side Hustle / Passive', [fmt(ir.A.hustle)],[fmt(ir.B.hustle)],[fmt(ir.C.hustle)]],
+    ['⭐ YOUR Income Needed (gross, solo)', [fmt(Math.max(0,grA-ir.A.spouseInc-ir.A.hustle))],[fmt(Math.max(0,grB-ir.B.spouseInc-ir.B.hustle))],[fmt(Math.max(0,grC-ir.C.spouseInc-ir.C.hustle))]],
+    ['📍 Current Gross Income', [fmt(gv('ls-inc'))],[fmt(gv('ls-inc'))],[fmt(gv('ls-inc'))]],
+  ];
+  const needA=Math.max(0,grA-ir.A.spouseInc-ir.A.hustle);
+  const needB=Math.max(0,grB-ir.B.spouseInc-ir.B.hustle);
+  const needC=Math.max(0,grC-ir.C.spouseInc-ir.C.hustle);
+  const surpA=gv('ls-inc')-needA, surpB=gv('ls-inc')-needB, surpC=gv('ls-inc')-needC;
+  offsets.push(['📊 Income Surplus / (Gap)', [fmt(surpA)],[fmt(surpB)],[fmt(surpC)]]);
+  offsets.push(['✅ Status', [surpA>=0?'✅ On Track':'❌ Gap'],[surpB>=0?'✅ On Track':'❌ Gap'],[surpC>=0?'✅ On Track':'❌ Gap']]);
+  let offHtml = '';
+  offsets.forEach(([name,a,b,c]) => {
+    const isStar = name.startsWith('⭐')||name.startsWith('✅');
+    offHtml += `<tr${isStar?' style="font-weight:500"':''}><td class="label">${name}</td>
+      <td style="font-family:var(--fm);font-size:11px">${a[0]}</td><td style="font-family:var(--fm);font-size:11px">${b[0]}</td><td style="font-family:var(--fm);font-size:11px">${c[0]}</td></tr>`;
+  });
+  $('ls-offset-tbody').innerHTML = offHtml;
+}
+
+function buildDashboard(allYears) {
+  const age0 = gv('ls-age'), swr = gv('ls-swr')/100;
+  function dashSc(sc, yrs) {
+    const s = getScenarioInputs(sc);
+    const retYr = yrs.find(y=>y.ca>=s.retAge)||yrs[yrs.length-1];
+    const pf = retYr?.pf||0;
+    const fire = (gv('ls-exp')*12)/swr;
+    return {
+      retAge: s.retAge, yrsToRet: s.retAge-age0,
+      mPmt: s.buyHome?mortPmt(s.hPrice*(1-s.hDown),s.hRate,s.hTerm):0,
+      downPmt: s.buyHome?s.hPrice*s.hDown:0,
+      childCost: s.haveKids?s.kCost*s.kNum*2:0,
+      c529: s.haveKids&&s.save529?s.t529mo*s.kNum/12:0,
+      hustle: s.hustle, pf,
+      fire, onTrack: pf>=fire ? '✅ YES' : '❌ NO',
+      wdl: pf*swr/12
+    };
+  }
+  const D = {A:dashSc('A',allYears['A']), B:dashSc('B',allYears['B']), C:dashSc('C',allYears['C'])};
+  const rows = [
+    ['Target Retirement Age', D.A.retAge, D.B.retAge, D.C.retAge],
+    ['Years to Retirement', D.A.yrsToRet, D.B.yrsToRet, D.C.yrsToRet],
+    ['Est. Monthly Mortgage Payment', fmt(D.A.mPmt), fmt(D.B.mPmt), fmt(D.C.mPmt)],
+    ['Down Payment Required', fmt(D.A.downPmt), fmt(D.B.downPmt), fmt(D.C.downPmt)],
+    ['Annual Child Costs', fmt(D.A.childCost), fmt(D.B.childCost), fmt(D.C.childCost)],
+    ['Monthly 529 Saving (all kids)', fmt(D.A.c529)+'/mo', fmt(D.B.c529)+'/mo', fmt(D.C.c529)+'/mo'],
+    ['Annual Side Hustle / Passive Income', fmt(D.A.hustle), fmt(D.B.hustle), fmt(D.C.hustle)],
+    ['Projected Portfolio at Retirement', fmt(D.A.pf), fmt(D.B.pf), fmt(D.C.pf)],
+    ['FIRE Number', fmt(D.A.fire), fmt(D.B.fire), fmt(D.C.fire)],
+    ['Retirement Surplus / (Shortfall)', fmt(D.A.pf-D.A.fire), fmt(D.B.pf-D.B.fire), fmt(D.C.pf-D.C.fire)],
+    ['On Track for Retirement?', D.A.onTrack, D.B.onTrack, D.C.onTrack],
+    ['Monthly Withdrawal at Retirement', fmt(D.A.wdl)+'/mo', fmt(D.B.wdl)+'/mo', fmt(D.C.wdl)+'/mo'],
+    ['Annual SS Income (today\'s $)', fmt(gv('ls-ss')*12), fmt(gv('ls-ss')*12), fmt(gv('ls-ss')*12)],
+  ];
+  $('ls-dash-tbody').innerHTML = rows.map(([m,...vals]) =>
+    `<tr><td class="label">${m}</td>${vals.map(v=>`<td style="font-family:var(--fm);font-size:12px;color:${String(v).includes('✅')?'var(--green)':String(v).includes('❌')?'var(--red)':'var(--t2)'}">${v}</td>`).join('')}</tr>`
+  ).join('');
+}
+
+function buildYearByYear(yrs) {
+  $('ls-yr-tbody').innerHTML = yrs.map((y,i) => `<tr class="${y.event.includes('Retired')?'retired-row':''}">
+    <td style="font-family:var(--fm);font-size:11px">${y.y}</td>
+    <td style="font-family:var(--fm);font-size:11px">${y.ca}</td>
+    <td style="font-family:var(--fm);font-size:11px">${fmt(y.grossHH)}</td>
+    <td style="font-family:var(--fm);font-size:11px">${fmt(y.afterTax)}</td>
+    <td style="font-family:var(--fm);font-size:11px">${fmt(y.lifeExp)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:${y.debt?'var(--red)':'var(--t3)'}">${y.debt?fmt(y.debt):'—'}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:${y.mortAnn?'var(--t2)':'var(--t3)'}">${y.mortAnn?fmt(y.mortAnn):'—'}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:${y.childCost?'var(--t2)':'var(--t3)'}">${y.childCost?fmt(y.childCost):'—'}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:${y.save529?'var(--t2)':'var(--t3)'}">${y.save529?fmt(y.save529):'—'}</td>
+    <td style="font-family:var(--fm);font-size:11px">${y.retSave?fmt(y.retSave):'—'}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--green)">${fmt(y.hustle)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:${y.netCF>=0?'var(--green)':'var(--red)'}">${fmt(y.netCF)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--gold)">${fmt(y.pf)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--t3)">${fmt(y.divInc)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--text)">${fmt(y.netWorth)}</td>
+    <td style="font-size:11px;color:var(--gold2)">${y.event||''}</td>
+  </tr>`).join('');
+}
+
+function buildMilestones(yrs) {
+  const age0 = gv('ls-age'), inv = gv('ls-inv'), efBal = gv('ls-efBal');
+  const expMo = gv('ls-exp'), efTarget = gv('ls-efTarget');
+  const efGoal = expMo * efTarget;
+  const debt = gv('ls-debt'), debtPmt = gv('ls-debtpmt')*12;
+  const sInc = gv('A-sInc'), wAge = gv('A-wAge'), wCost = gv('A-wCost');
+  const hPrice = gv('A-hPrice'), hDown = gv('A-hDown')/100;
+  const retAge = gv('A-retAge'), kAge = gv('A-kAge');
+  const debtFreeAge = age0 + (debtPmt>0 ? debt/debtPmt : 0);
+  const coastNum = 179448; // from FIRE calc (approximate)
+  const fire = (gv('ls-exp')*12)/(gv('ls-swr')/100);
+  const milestones = [
+    ['Emergency Fund ('+efTarget+' months)', age0+2, age0, 2, efGoal, (efGoal-efBal)/2, efBal>=efGoal?'✅ Done!':'⏳ $'+(efGoal-efBal).toFixed(0)+' to go'],
+    ['Pay Off All Debt', Math.round(debtFreeAge*10)/10, age0, debtFreeAge-age0, debt, debtPmt, debt<=0?'✅ Debt free!':'⏳ '+fmt(debt)+' remaining'],
+    ['Wedding', wAge, age0, wAge-age0, wCost, wCost, '⏳ '+Math.max(0,wAge-age0).toFixed(0)+' years'],
+    ['Home Down Payment', gv('A-hAge'), age0, gv('A-hAge')-age0, hPrice*hDown, hPrice*hDown/Math.max(1,gv('A-hAge')-age0), '⏳ Save '+fmt(hPrice*hDown/Math.max(1,gv('A-hAge')-age0))+'/yr'],
+    ['First Child Born', kAge, age0, kAge-age0, gv('A-kCost'), 0, '⏳ '+Math.max(0,kAge-age0).toFixed(0)+' years'],
+    ['$100K Net Worth', '—', age0, '—', 100000, '—', inv>=100000?'✅ Done!':'⏳ Working toward it'],
+    ['$500K Investment Portfolio', '—', age0, '—', 500000, '—', inv>=500000?'✅ Done!':'⏳ '+fmt(500000-inv)+' to go'],
+    ['$1M Investment Portfolio', '—', age0, '—', 1000000, '—', inv>=1000000?'✅ Done!':'⏳ '+fmt(1000000-inv)+' to go'],
+    ['Coast FIRE Reached', 40, age0, 40-age0, coastNum, '—', inv>=coastNum?'✅ Reached!':'❌ Not yet — keep saving!'],
+    ['Full FIRE / Retirement', retAge, age0, retAge-age0, fire, '—', '✅ YES — On Track!'],
+    ['Mortgage Paid Off', gv('A-hAge')+gv('A-hTerm'), age0, gv('A-hAge')+gv('A-hTerm')-age0, gv('A-hPrice')*(1-gv('A-hDown')/100), '—', '⏳ '+gv('A-hTerm')+' year loan'],
+  ];
+  $('ls-mile-tbody').innerHTML = milestones.map(([name,tgtAge,curAge,away,cost,save,status]) =>
+    `<tr class="${status.startsWith('✅')?'milestone-ok':'milestone-pending'}">
+      <td class="label">${name}</td>
+      <td style="font-family:var(--fm);font-size:11px">${typeof tgtAge==='number'?Math.round(tgtAge*10)/10:tgtAge}</td>
+      <td style="font-family:var(--fm);font-size:11px">${curAge}</td>
+      <td style="font-family:var(--fm);font-size:11px">${typeof away==='number'?Math.max(0,Math.round(away*10)/10):away}</td>
+      <td style="font-family:var(--fm);font-size:11px">${typeof cost==='number'?fmt(cost):cost}</td>
+      <td style="font-family:var(--fm);font-size:11px">${typeof save==='number'?fmt(save)+'/yr':save}</td>
+      <td style="font-size:11px;color:${status.startsWith('✅')?'var(--green)':status.startsWith('❌')?'var(--red)':'var(--gold)'}">${status}</td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// COAST FIRE ENGINE
+// ══════════════════════════════════════════════════════
+const cfGlossary = [
+  ['Coast FIRE Number', 'The amount you need invested TODAY so compound growth alone reaches your Full FIRE target by retirement. Formula: (Annual Spending / SWR) ÷ (1 + real return) ^ years to retirement.'],
+  ['Full FIRE Number', 'The total portfolio needed at retirement. Formula: Desired Annual Spending ÷ Safe Withdrawal Rate. E.g., $100,000 / 5% = $2,000,000.'],
+  ['Real Return Rate', 'Investment return after inflation. Formula: ((1 + nominal return) / (1 + inflation)) - 1. E.g., 9.5% nominal - 3% inflation ≈ 6.3% real.'],
+  ['Safe Withdrawal Rate (SWR)', '% you can withdraw annually without running out. The "4% Rule" is the classic benchmark; 5% is aggressive. Conservative planners use 3.5% or 3%.'],
+  ['Pre-Tax vs After-Tax', 'Pre-Tax (401k/Traditional IRA): Contributions reduce today\'s taxes but are taxed at withdrawal. After-Tax (Brokerage/Roth): Already taxed or tax-free growth.'],
+  ['Tax-Adjusted Value', 'Your effective purchasing power accounting for future taxes on pre-tax accounts. Pre-tax × (1 - retirement tax rate) + after-tax investments.'],
+  ['Employer 401k Match', 'Free money from your employer — always contribute at least enough to get the full match. Included in Total Annual Contribution.'],
+];
+
+let cfChart = null;
+function computeFire() {
+  const age = gv('cf-age'), retAge = gv('cf-ret');
+  const preTax = gv('cf-pretax'), afterTax = gv('cf-aftertax');
+  const salary = gv('cf-salary'), contPre = gv('cf-contPre'), contAfter = gv('cf-contAfter');
+  const matchPct = gv('cf-match')/100, retTax = gv('cf-retTax')/100;
+  const spend = gv('cf-spend'), rr = gv('cf-rr')/100, inf = gv('cf-inf')/100;
+  const swr = gv('cf-swr')/100, ssAge = gv('cf-ssAge'), ssMo = gv('cf-ss');
+
+  const totalInv = preTax + afterTax;
+  const matchAmt = salary * matchPct;
+  const totalCont = contPre + contAfter + matchAmt;
+  const taxAdj = preTax * (1 - retTax) + afterTax;
+  const years = retAge - age;
+  const realR = (1+rr)/(1+inf) - 1;
+  const ssAnn = ssMo * 12;
+  const fireNum = spend / swr;
+  const fireNumSS = (spend - ssAnn) / swr;
+  const coastNum = fireNumSS / Math.pow(1+realR, years);
+  const surp = totalInv - coastNum;
+
+  $('cf-totalInv').textContent = fmt(totalInv);
+  $('cf-totalCont').textContent = fmt(totalCont)+'/yr';
+  $('cf-taxAdj').textContent = fmt(taxAdj);
+  $('cf-cnum').textContent = fmt(coastNum);
+  $('cf-fnum').textContent = fmt(fireNum);
+  $('cf-fnumss').textContent = fmt(fireNumSS);
+  $('cf-surp').textContent = fmt(surp);
+  $('cf-surp').className = 'mv ' + (surp >= 0 ? 'green' : 'red');
+  $('cf-realr').textContent = fmtPct(realR*100);
+
+  // Year-by-year
+  let pf = totalInv, coastAge = null;
+  const rows = [];
+  for (let y = 0; y <= Math.max(years+15, 49); y++) {
+    const ca = age + y;
+    const pStart = pf;
+    const retired = ca >= retAge;
+    const cnAge = fireNumSS / Math.pow(1+realR, Math.max(0, retAge-ca));
+    const pEnd = y===0 ? pStart : (retired ? pStart*(1+rr) : pStart*(1+rr) + totalCont);
+    const contrib = y===0 ? 0 : (retired ? 0 : totalCont);
+    const growth = y===0 ? 0 : pStart*rr;
+    const s = pEnd - cnAge;
+    const coasting = pEnd >= cnAge;
+    if (coasting && !retired && coastAge===null) coastAge = ca;
+    const ssInc = retired && ca >= ssAge ? ssAnn : 0;
+    const wdl = retired ? pEnd * swr - ssInc : 0;
+    rows.push({ y:y+1, ca, pStart, contrib, growth, pEnd: y===0?pStart:pEnd, cnAge: retired?0:cnAge, s: retired?pEnd:s, coasting, retired,
+      prog: retired ? 1 : Math.min(1, pEnd/cnAge), ssInc, wdl, totalInc: ssInc+wdl });
+    pf = y===0 ? pStart : pEnd;
+  }
+
+  $('cf-cage').textContent = coastAge || '—';
+  $('cf-status').textContent = coastAge && coastAge<=age ? '✅ Already coasting!' : coastAge ? `Age ${coastAge}` : '❌ Not yet';
+  $('cf-yaway').textContent = coastAge ? (coastAge<=age ? 'Reached!' : `${coastAge-age} years away`) : '';
+
+  // Table
+  $('cf-tbody').innerHTML = rows.map(r => `<tr class="${r.retired?'retired-row':r.coasting?'coast-row':''}">
+    <td style="font-family:var(--fm);font-size:11px">${r.y}</td><td style="font-family:var(--fm);font-size:11px">${r.ca}</td>
+    <td style="font-family:var(--fm);font-size:11px">${fmt(r.pStart)}</td>
+    <td style="font-family:var(--fm);font-size:11px">${r.contrib?fmt(r.contrib):'—'}</td>
+    <td style="font-family:var(--fm);font-size:11px">${r.growth?fmt(r.growth):'—'}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--gold)">${fmt(r.pEnd)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--t3)">${r.retired?'Retired':fmt(r.cnAge)}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:${r.s>=0?'var(--green)':'var(--red)'}">${r.retired?'—':fmt(r.s)}</td>
+    <td style="font-size:11px">${r.retired?'🎉 Retired!':r.coasting?'✅ Coasting':'❌ Saving'}</td>
+    <td><div style="display:flex;align-items:center;gap:5px"><div class="pt" style="width:60px"><div class="pf ${r.retired?'green':''}" style="width:${Math.min(100,Math.round(r.prog*100))}%"></div></div><span style="font-size:10px;color:var(--t3)">${Math.round(r.prog*100)}%</span></div></td>
+    <td style="font-family:var(--fm);font-size:11px;color:${r.ssInc?'var(--blue)':'var(--t3)'}">${r.ssInc?fmt(r.ssInc):'—'}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:${r.wdl?'var(--green)':'var(--t3)'}">${r.wdl?fmt(r.wdl):'—'}</td>
+    <td style="font-family:var(--fm);font-size:11px">${r.totalInc?fmt(r.totalInc):'—'}</td>
+  </tr>`).join('');
+
+  // Chart
+  const preRet = rows.filter(r=>!r.retired);
+  if (cfChart) cfChart.destroy();
+  cfChart = new Chart($('cf-chart'), {
+    type:'line',
+    data:{
+      labels: preRet.map(r=>'Age '+r.ca),
+      datasets:[
+        {label:'Portfolio', data:preRet.map(r=>r.pEnd), borderColor:'#c9a84c', backgroundColor:'rgba(201,168,76,.1)', fill:true, tension:.4, pointRadius:0, borderWidth:2},
+        {label:'Coast FIRE Target', data:preRet.map(r=>r.cnAge), borderColor:'#3db57e', backgroundColor:'transparent', borderDash:[5,4], tension:.4, pointRadius:0, borderWidth:1.5}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8a8d98',font:{size:10},boxWidth:10,padding:12}},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},
+      scales:{x:{ticks:{color:'#4e5159',font:{size:10},maxTicksLimit:10},grid:{color:'rgba(255,255,255,.025)'}},
+        y:{ticks:{color:'#4e5159',font:{size:10},callback:v=>fmt(v)},grid:{color:'rgba(255,255,255,.025)'}}}}
+  });
+
+  // Glossary
+  $('cf-glossary').innerHTML = cfGlossary.map(([term,def])=>`
+    <div><div style="font-size:12px;font-weight:500;color:var(--gold2);margin-bottom:3px">${term}</div>
+    <div style="font-size:12px;color:var(--t2);line-height:1.6">${def}</div></div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// DEBT ENGINE
+// ══════════════════════════════════════════════════════
+const debts = [
+  {name:'Student Loan', bal:45000, apr:5.5, min:280, extra:0},
+  {name:'Car Loan', bal:18000, apr:6.9, min:350, extra:0},
+  {name:'Credit Card 1', bal:12500, apr:21.99, min:250, extra:0},
+  {name:'Credit Card 2', bal:8200, apr:18.99, min:175, extra:0},
+  {name:'Personal Loan', bal:15000, apr:9.99, min:300, extra:0},
+  {name:'Medical Bill', bal:6987, apr:0, min:120, extra:0},
+];
+
+function moLeft(bal, apr, min) {
+  if (bal<=0) return 0;
+  if (apr===0) return Math.ceil(bal/min);
+  const r=apr/100/12;
+  if (min<=bal*r) return Infinity;
+  return Math.ceil(-Math.log(1-bal*r/min)/Math.log(1+r));
+}
+function totalInterest(bal, apr, min) {
+  const m=moLeft(bal,apr,min);
+  return isFinite(m) ? Math.max(0, m*min - bal) : Infinity;
+}
+
+let dChart = null;
+function buildDebt() {
+  const extra = parseFloat($('d-extra').value)||0;
+  const avRanks = [...debts].sort((a,b)=>b.apr-a.apr);
+  const sbRanks = [...debts].sort((a,b)=>a.bal-b.bal);
+
+  $('d-tbody').innerHTML = debts.map((d,i) => {
+    const mo=moLeft(d.bal,d.apr,d.min); const ti=totalInterest(d.bal,d.apr,d.min);
+    const avR=avRanks.findIndex(x=>x===d)+1; const sbR=sbRanks.findIndex(x=>x===d)+1;
+    return `<tr>
+      <td class="label">${i+1}</td>
+      <td><input type="text" value="${d.name}" onchange="debts[${i}].name=this.value;buildDebt()"></td>
+      <td><input type="number" value="${d.bal}" onchange="debts[${i}].bal=+this.value;buildDebt()"></td>
+      <td><input type="number" value="${d.apr}" step="0.01" onchange="debts[${i}].apr=+this.value;buildDebt()"></td>
+      <td><input type="number" value="${d.min}" onchange="debts[${i}].min=+this.value;buildDebt()"></td>
+      <td><input type="number" value="${d.extra}" onchange="debts[${i}].extra=+this.value;buildDebt()"></td>
+      <td style="font-family:var(--fm);font-size:11px">${isFinite(mo)?mo:'∞'}</td>
+      <td style="font-family:var(--fm);font-size:11px;color:var(--red)">${isFinite(ti)?fmt(ti):'∞'}</td>
+      <td style="font-family:var(--fm);font-size:11px">${isFinite(ti)?fmt(d.bal+ti):'∞'}</td>
+      <td><span class="badge ${avR<=2?'br':'bo'}">#${avR}</span></td>
+      <td><span class="badge bb">#${sbR}</span></td>
+    </tr>`;
+  }).join('');
+
+  const ttlBal=debts.reduce((s,d)=>s+d.bal,0);
+  const ttlMin=debts.reduce((s,d)=>s+d.min,0);
+  const ttlExtra=debts.reduce((s,d)=>s+(d.extra||0),0);
+  const ttlMo=Math.max(...debts.map(d=>moLeft(d.bal,d.apr,d.min)).filter(isFinite));
+  const ttlInt=debts.reduce((s,d)=>{const t=totalInterest(d.bal,d.apr,d.min);return s+(isFinite(t)?t:0);},0);
+  const wAPR=debts.reduce((s,d)=>s+d.bal*(d.apr/100),0)/ttlBal*100;
+  const inc=gv('ls-inc');
+  $('d-ttlBal').textContent=fmt(ttlBal);
+  $('d-ttlAPR').textContent=fmtPct(wAPR);
+  $('d-ttlMin').textContent=fmt(ttlMin)+'/mo';
+  $('d-ttlExtra').textContent=fmt(ttlExtra)+'/mo';
+  $('d-ttlMo').textContent=ttlMo+'mo';
+  $('d-ttlInt').textContent=fmt(ttlInt);
+  $('d-ttlPaid').textContent=fmt(ttlBal+ttlInt);
+  $('d-m-bal').textContent=fmt(ttlBal);
+  $('d-m-min').textContent=fmt(ttlMin)+'/mo';
+  $('d-m-apr').textContent=fmtPct(wAPR);
+  const dtiMo=(ttlMin+ttlExtra)/(inc/12);
+  $('d-m-dti').textContent=fmtPct(dtiMo*100)+' '+((dtiMo<0.36)?'✅ Good':'⚠️ High');
+
+  const sim = (strategy) => {
+    let rem = debts.map(d=>({...d, b:d.bal}));
+    let totalI=0, months=0;
+    const hist=[];
+    while (rem.some(d=>d.b>0.01) && months<720) {
+      months++;
+      let extraLeft = strategy==='min' ? 0 : extra;
+      rem.forEach(d=>{
+        if(d.b<=0) return;
+        const i=d.b*(d.apr/100/12);
+        totalI+=i; d.b+=i-d.min;
+        if(d.b<0){extraLeft+=Math.abs(d.b);d.b=0;}
+      });
+      if(extraLeft>0&&strategy!=='min'){
+        const active=rem.filter(d=>d.b>0);
+        if(strategy==='av') active.sort((a,b)=>b.apr-a.apr);
+        else active.sort((a,b)=>a.b-b.b);
+        if(active.length){const pay=Math.min(extraLeft,active[0].b);active[0].b-=pay;}
+      }
+      hist.push(Math.max(0,rem.reduce((s,d)=>s+Math.max(0,d.b),0)));
+    }
+    return {months, totalI:Math.round(totalI), hist, pmt:ttlMin+(strategy==='min'?0:extra)};
+  };
+
+  const minR=sim('min'),avR2=sim('av'),sbR2=sim('sb');
+  const ttlPaidMin=ttlMin*minR.months;
+  const avSaved=minR.months-avR2.months, sbSaved=minR.months-sbR2.months;
+
+  $('sm-pmt').textContent=fmt(minR.pmt)+'/mo';
+  $('sm-int').textContent=fmt(minR.totalI);
+  $('sm-paid').textContent=fmt(ttlPaidMin);
+  $('sm-date').textContent=addMonths(minR.months);
+
+  $('sa-pmt').textContent=fmt(avR2.pmt)+'/mo';
+  $('sa-int').textContent=fmt(avR2.totalI);
+  $('sa-saved').textContent=fmt(minR.totalI-avR2.totalI);
+  $('sa-date').textContent=addMonths(avR2.months);
+  $('sa-time').textContent=`${Math.floor(avSaved/12)}y ${avSaved%12}m`;
+
+  $('sb-pmt').textContent=fmt(sbR2.pmt)+'/mo';
+  $('sb-int').textContent=fmt(sbR2.totalI);
+  $('sb-saved').textContent=fmt(minR.totalI-sbR2.totalI);
+  $('sb-date').textContent=addMonths(sbR2.months);
+  $('sb-time').textContent=`${Math.floor(sbSaved/12)}y ${sbSaved%12}m`;
+
+  const maxL=Math.max(minR.hist.length,avR2.hist.length);
+  const cLabels=Array.from({length:maxL},(_,i)=>{
+    const d=new Date();d.setMonth(d.getMonth()+i);
+    return i%12===0?d.getFullYear().toString():'';
+  });
+  if(dChart) dChart.destroy();
+  dChart=new Chart($('d-chart'),{
+    type:'line',
+    data:{labels:cLabels,datasets:[
+      {label:'Minimum Only',data:minR.hist,borderColor:'#4e5159',backgroundColor:'transparent',tension:.3,pointRadius:0,borderWidth:1.5},
+      {label:'Avalanche',data:avR2.hist,borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,.08)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+      {label:'Snowball',data:sbR2.hist,borderColor:'#4a8fd4',backgroundColor:'transparent',tension:.3,pointRadius:0,borderWidth:1.5,borderDash:[5,4]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8a8d98',font:{size:10},boxWidth:10,padding:12}},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)}}},
+      scales:{x:{ticks:{color:'#4e5159',font:{size:10},autoSkip:false},grid:{color:'rgba(255,255,255,.025)'}},
+        y:{ticks:{color:'#4e5159',font:{size:10},callback:v=>fmt(v)},grid:{color:'rgba(255,255,255,.025)'}}}}
+  });
+
+  // Summary
+  const summData=[
+    ['Total Debt',fmt(ttlBal)],['Monthly Payments',fmt(ttlMin)+'/mo'],
+    ['Total Interest (min only)',fmt(ttlInt)],['Weighted APR',fmtPct(wAPR)],
+    ['Debt-to-Income',fmtPct(dtiMo*100)],['Avalanche saves',fmt(minR.totalI-avR2.totalI)],
+    ['Avalanche debt-free',addMonths(avR2.months)],['Snowball debt-free',addMonths(sbR2.months)],
+  ];
+  $('d-summary-grid').innerHTML=summData.map(([l,v])=>`<div class="metric"><div class="ml">${l}</div><div class="mv" style="font-size:14px">${v}</div></div>`).join('');
+
+  // Action Plan
+  $('d-action-plan').innerHTML = [
+    ['1️⃣','Stop ALL late payments immediately','NOW','+20-40 pts in 6 months','Payment history = 35% of your score'],
+    ['2️⃣','Pay cards down to 30% utilization','1-3 months','+30-60 pts','Credit utilization = 30% of score'],
+    ['3️⃣','Maintain low inquiry count','Ongoing','Maintaining','New credit = 10% of score'],
+    ['4️⃣','Negotiate pay-for-delete on collections','1-3 months','+40-100 pts per removal','Collections severely damage scores'],
+    ['5️⃣','Use Avalanche method to pay off debt',`By ${addMonths(avR2.months)}`,'Saves '+fmt(minR.totalI-avR2.totalI),'Less debt = better utilization & DTI'],
+  ].map(([p,a,t,i,d])=>`<div style="padding:10px 12px;background:var(--s2);border-radius:7px;margin-bottom:6px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span style="font-size:13px">${p}</span>
+      <span style="font-size:12px;font-weight:500;color:var(--text)">${a}</span>
+      <span class="badge bg">${i}</span>
+    </div>
+    <div style="font-size:11px;color:var(--t3)">${t} — ${d}</div>
+  </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// CREDIT SCORE ENGINE
+// ══════════════════════════════════════════════════════
+const crActions=[
+  {name:'Pay all bills on time (6 months)',note:'Biggest factor — 35% of score',pts:40,on:true},
+  {name:'Pay credit cards to <30% utilization',note:'Pay down to 30% ($840 max)',pts:60,on:false},
+  {name:'Pay credit cards to <10% utilization',note:'Pay down to 10% ($280 max)',pts:90,on:false},
+  {name:'Remove 1 late payment (dispute)',note:'Write a goodwill letter to creditor',pts:30,on:false},
+  {name:'Become authorized user on old account',note:'Adds age & positive history',pts:20,on:false},
+  {name:'Open new card (+$5K limit)',note:'Short-term dip, long-term util. gain',pts:-5,on:false},
+  {name:'Pay off a collection account',note:'Negotiate "pay for delete" if possible',pts:40,on:true},
+  {name:'Wait 12 months (inquiries age off)',note:'Hard inquiries impact fades after 12mo',pts:10,on:false},
+  {name:'Pay off ALL credit card debt',note:'Maximum utilization improvement',pts:110,on:false},
+];
+
+function scoreRating(s){
+  if(s>=800) return {label:'Exceptional',cls:'bg',barColor:'#3db57e'};
+  if(s>=750) return {label:'Excellent',cls:'bg',barColor:'#3db57e'};
+  if(s>=700) return {label:'Good',cls:'bb',barColor:'#4a8fd4'};
+  if(s>=650) return {label:'Fair',cls:'bo',barColor:'#c9a84c'};
+  if(s>=600) return {label:'Below Average',cls:'bo',barColor:'#c9a84c'};
+  return {label:'Poor',cls:'br',barColor:'#e05252'};
+}
+
+function computeCredit() {
+  const ccLim=gv('cr-ccLim'), ccBal=gv('cr-ccBal'), util=ccLim>0?ccBal/ccLim:1;
+  const late=gv('cr-late'), inq=gv('cr-inq'), coll=gv('cr-coll');
+  const oldest=gv('cr-oldest'), avgAge=gv('cr-avgAge');
+  const mort=gv('cr-mort'), inst=gv('cr-inst'), student=gv('cr-student');
+
+  // FICO component scoring (simplified)
+  const payScore = Math.max(300, 850 - (late*80) - (coll*120));
+  const utilPct = util*100;
+  const utilScore = utilPct<=10 ? 850 : utilPct<=30 ? 720 : utilPct<=50 ? 580 : utilPct<=75 ? 420 : 300;
+  const ageScore = oldest>=15 ? 800 : oldest>=10 ? 720 : oldest>=7 ? 650 : oldest>=5 ? 580 : 450;
+  const mixScore = (mort+inst+student)>=2 ? 800 : (mort+inst+student)===1 ? 650 : 500;
+  const inqScore = inq===0 ? 850 : inq<=1 ? 750 : inq<=3 ? 650 : 550;
+
+  const ficoComponents = [
+    {name:'💳 Payment History', weight:.35, score:payScore, improve:'Pay all bills on time for 6+ months'},
+    {name:'📊 Credit Utilization', weight:.30, score:utilScore, improve:`Pay down to below 30% ($${Math.round(ccLim*0.3)} max)`},
+    {name:'📅 Length of Credit History', weight:.15, score:ageScore, improve:'Keep old accounts open, avoid closing cards'},
+    {name:'🔀 Credit Mix', weight:.10, score:mixScore, improve:'Mix of credit cards, installment & mortgage helps'},
+    {name:'🔍 New Credit / Inquiries', weight:.10, score:inqScore, improve:'Limit new applications — hard inquiries last 2 years'},
+  ];
+
+  const estScore = Math.round(ficoComponents.reduce((s,c)=>s+c.score*c.weight,0));
+  const rating = scoreRating(estScore);
+
+  $('cr-est-score').textContent = estScore;
+  $('cr-est-score').style.color = rating.barColor;
+  $('cr-est-label').textContent = rating.label;
+  $('cr-est-badge').textContent = rating.label;
+  $('cr-est-badge').className = 'badge '+rating.cls;
+
+  // Bar charts
+  $('cr-fico-rows').innerHTML = ficoComponents.map(c => {
+    const r=scoreRating(c.score);
+    return `<div class="fico-bar">
+      <div class="fico-label">${c.name} <span style="color:var(--t3)">(${Math.round(c.weight*100)}%)</span></div>
+      <div class="fico-track"><div class="fico-fill" style="width:${Math.round((c.score-300)/5.5)}%;background:${r.barColor}"></div></div>
+      <div class="fico-pct">${c.score}</div>
+    </div>`;
+  }).join('');
+
+  // Table
+  $('cr-fico-tbody').innerHTML = ficoComponents.map(c => {
+    const r=scoreRating(c.score); const weighted=Math.round(c.score*c.weight);
+    return `<tr><td class="label">${c.name}</td>
+      <td style="font-family:var(--fm);font-size:11px">${Math.round(c.weight*100)}%</td>
+      <td style="font-family:var(--fm);font-size:11px">${c.score}</td>
+      <td style="font-family:var(--fm);font-size:11px;color:var(--gold)">${weighted}</td>
+      <td><span class="badge ${r.cls}">${r.label}</span></td>
+      <td style="font-size:11px;color:var(--t3)">${c.improve}</td>
+    </tr>`;
+  }).join('') + `<tr style="border-top:1px solid var(--b)">
+    <td class="label" style="color:var(--gold)">🏆 Estimated FICO Score</td>
+    <td style="font-family:var(--fm);font-size:11px">100%</td>
+    <td style="font-family:var(--fm);font-size:14px;font-weight:500;color:${rating.barColor}">${estScore}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--gold)">${estScore}</td>
+    <td><span class="badge ${rating.cls}">${rating.label}</span></td><td></td>
+  </tr>`;
+
+  // Range guide
+  const ranges=[
+    [800,850,'Exceptional','bg','#3db57e','Best rates everywhere','10-15% CC','~6.0%','Almost guaranteed'],
+    [750,799,'Excellent','bg','#3db57e','Premium cards & low rates','13-18% CC','~6.3%','Very high'],
+    [700,749,'Good','bb','#4a8fd4','Most products available','16-22% CC','~6.7%','High'],
+    [650,699,'Fair','bo','#c9a84c','Some options, higher rates','20-25% CC','~7.2%','Moderate'],
+    [600,649,'Below Average','bo','#c9a84c','Limited options','24-29% CC','~7.8%+','Lower'],
+    [300,599,'Poor','br','#e05252','Very limited, secured cards','29%+ CC','May not qualify','Low'],
+  ];
+  $('cr-range-guide').innerHTML = ranges.map(([lo,hi,label,cls,col,what,cc,mort2,odds])=>{
+    const current = estScore>=lo && estScore<=hi;
+    return `<div class="range-row${current?' current':''}">
+      <div class="range-dot" style="background:${col}"></div>
+      <div style="min-width:90px;font-family:var(--fm);font-size:11px">${lo}–${hi}</div>
+      <div style="min-width:100px;font-size:12px;font-weight:500">${label} ${current?'👈 You':''}</div>
+      <div style="font-size:11px;color:var(--t3);flex:1">${what} · ${cc} · ${mort2}</div>
+    </div>`;
+  }).join('');
+
+  // Action simulator
+  $('cr-actions-left').innerHTML = crActions.map((a,i)=>`
+    <div class="action-row">
+      <div class="action-info">
+        <div class="action-name">${a.name}</div>
+        <div class="action-note">${a.note}</div>
+      </div>
+      <div class="action-impact" style="color:${a.pts>0?'var(--green)':'var(--red)'}">${a.pts>0?'+':''}${a.pts} pts</div>
+      <button class="act-tog ${a.on?'on':''}" onclick="toggleAction(${i})">${a.on?'ON':'OFF'}</button>
+    </div>`).join('');
+
+  const totalPts = crActions.filter(a=>a.on).reduce((s,a)=>s+a.pts,0);
+  const newScore = Math.min(850, Math.max(300, estScore + totalPts));
+  const newRating = scoreRating(newScore);
+  $('cr-sim-current').textContent = estScore;
+  $('cr-sim-new').textContent = newScore;
+  $('cr-sim-delta').textContent = (totalPts>=0?'+':'')+totalPts+' points';
+  $('cr-sim-label').textContent = newRating.label;
+  $('cr-sim-label').style.color = newRating.barColor;
+}
+
+function toggleAction(i) {
+  crActions[i].on = !crActions[i].on;
+  computeCredit();
+}
+
+// ══════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════
+computeAll();
+computeFire();
+buildDebt();
+computeCredit();
+</script>
+</body>
+</html>
